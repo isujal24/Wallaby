@@ -4,45 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wallaby // Premium Leave Orchestrator</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    animation: {
-                        'pulse-subtle': 'pulseSubtle 2s infinite ease-in-out',
-                        'fade-in': 'fadeIn 0.4s ease-out forwards',
-                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                        'float-subtle': 'floatSubtle 3s infinite ease-in-out',
-                    },
-                    keyframes: {
-                        pulseSubtle: {
-                            '0%, 100%': { opacity: '1', transform: 'scale(1)' },
-                            '50%': { opacity: '.85', transform: 'scale(1.03)' },
-                        },
-                        fadeIn: {
-                            '0%': { opacity: '0', transform: 'translateY(10px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        slideUp: {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        },
-                        floatSubtle: {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(-3px)' },
-                        }
-                    }
-                }
-            }
+    <!-- Tailwind CSS v4 browser build — proper production-ready CDN for standalone HTML -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.8/dist/index.global.js"></script>
+    <style type="text/tailwindcss">
+        @theme {
+            --font-sans: 'Inter', sans-serif;
         }
-    </script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    </style>
+    <!-- Lucide Icons — pinned version via jsDelivr for reliable loading -->
+    <script src="https://cdn.jsdelivr.net/npm/lucide@0.383.0/dist/umd/lucide.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         
@@ -68,230 +38,409 @@
         .sparkle-slow { animation: twinkle 3s infinite ease-in-out; }
         .sparkle-fast { animation: twinkle 2s infinite ease-in-out 0.5s; }
 
-        /* Premium CSS Variables Mapping Design Tokens dynamically across Themes */
-        body.theme-light {
-            --bg-main: #fafafa;
-            --text-main: #171717;
-            --bg-card: #ffffff;
-            --border-card: rgba(229, 229, 229, 0.8);
-            --bg-accent: #0a0a0a;
-            --text-accent: #ffffff;
-            --bg-accent-hover: #262626;
-            --bg-muted: #f4f4f5;
-            --text-muted: #71717a;
-            --bg-accent-soft: #f4f4f5;
+        /* ================================================================
+           WALLABY DESIGN SYSTEM — 4 Distinct Theme Concepts
+           Inspired by: learnui.design 7 Rules — whitespace, hierarchy, light
+           ================================================================ */
+
+        /* ── 1. ARCTIC — Clean ice-blue Scandinavian clarity ─────────── */
+        body.theme-arctic {
+            --bg-main:        #f0f4f8;
+            --bg-page:        linear-gradient(160deg, #e8f0fb 0%, #f0f4f8 60%);
+            --text-main:      #0f1c2e;
+            --text-muted:     #5a7a9a;
+            --bg-card:        #ffffff;
+            --border-card:    #d6e4f0;
+            --bg-accent:      #1a6bbd;
+            --text-accent:    #ffffff;
+            --bg-accent-hover:#1558a0;
+            --bg-muted:       #ebf2fa;
+            --shadow-card:    0 1px 3px rgba(26,107,189,0.08), 0 8px 24px rgba(26,107,189,0.06);
+            --shadow-inset:   inset 0 2px 4px rgba(26,107,189,0.08);
+            --ring-accent:    rgba(26,107,189,0.25);
         }
-        body.theme-dark {
-            --bg-main: #0c0c0e;
-            --text-main: #fafafa;
-            --bg-card: #18181b;
-            --border-card: #27272a;
-            --bg-accent: #fafafa;
-            --text-accent: #18181b;
-            --bg-accent-hover: #e4e4e7;
-            --bg-muted: #202023;
-            --text-muted: #a1a1aa;
-            --bg-accent-soft: #27272a;
+        /* ── 2. MIDNIGHT — Deep space dark mode ──────────────────────── */
+        body.theme-midnight {
+            --bg-main:        #080b12;
+            --bg-page:        linear-gradient(135deg, #0b0f1a 0%, #080b12 100%);
+            --text-main:      #e8eaf2;
+            --text-muted:     #6b7699;
+            --bg-card:        #111524;
+            --border-card:    #1e2540;
+            --bg-accent:      #6366f1;
+            --text-accent:    #ffffff;
+            --bg-accent-hover:#4f52d4;
+            --bg-muted:       #161a2e;
+            --shadow-card:    0 1px 3px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.3);
+            --shadow-inset:   inset 0 2px 4px rgba(0,0,0,0.4);
+            --ring-accent:    rgba(99,102,241,0.3);
         }
-        body.theme-forest {
-            --bg-main: #f0f4f1;
-            --text-main: #1a2f21;
-            --bg-card: #ffffff;
-            --border-card: #d2dfd4;
-            --bg-accent: #1e3f20;
-            --text-accent: #ffffff;
-            --bg-accent-hover: #152d17;
-            --bg-muted: #e4ece6;
-            --text-muted: #536c5b;
-            --bg-accent-soft: #edf3ee;
+        /* ── 3. TERRA — Warm desert terracotta ───────────────────────── */
+        body.theme-terra {
+            --bg-main:        #fdf6ed;
+            --bg-page:        linear-gradient(150deg, #fef0dc 0%, #fdf6ed 55%);
+            --text-main:      #2c1810;
+            --text-muted:     #8c6545;
+            --bg-card:        #fffcf7;
+            --border-card:    #f0dcc8;
+            --bg-accent:      #c0501e;
+            --text-accent:    #ffffff;
+            --bg-accent-hover:#a04018;
+            --bg-muted:       #f7ece0;
+            --shadow-card:    0 1px 3px rgba(192,80,30,0.08), 0 8px 24px rgba(192,80,30,0.06);
+            --shadow-inset:   inset 0 2px 4px rgba(192,80,30,0.08);
+            --ring-accent:    rgba(192,80,30,0.2);
         }
-        body.theme-ochre {
-            --bg-main: #faf6f0;
-            --text-main: #331f13;
-            --bg-card: #ffffff;
-            --border-card: #f0e2d3;
-            --bg-accent: #b25d1e;
-            --text-accent: #ffffff;
-            --bg-accent-hover: #8f4611;
-            --bg-muted: #f4eae1;
-            --text-muted: #7d6555;
-            --bg-accent-soft: #fbf2e9;
+        /* ── 4. MATCHA — Japanese moss & stone ───────────────────────── */
+        body.theme-matcha {
+            --bg-main:        #f2f5f0;
+            --bg-page:        linear-gradient(145deg, #e8efe4 0%, #f2f5f0 60%);
+            --text-main:      #1a2518;
+            --text-muted:     #5c7358;
+            --bg-card:        #fafcf9;
+            --border-card:    #ccdec8;
+            --bg-accent:      #2d6a2a;
+            --text-accent:    #ffffff;
+            --bg-accent-hover:#235220;
+            --bg-muted:       #e8f0e5;
+            --shadow-card:    0 1px 3px rgba(45,106,42,0.08), 0 8px 24px rgba(45,106,42,0.06);
+            --shadow-inset:   inset 0 2px 4px rgba(45,106,42,0.06);
+            --ring-accent:    rgba(45,106,42,0.2);
         }
 
+        /* ── Base body ───────────────────────────────────────────────── */
         body {
+            background: var(--bg-page, var(--bg-main));
             background-color: var(--bg-main);
             color: var(--text-main);
-            transition: background-color 0.4s ease, color 0.4s ease;
+            transition: background-color 0.5s ease, color 0.5s ease;
             -webkit-font-smoothing: antialiased;
+            font-feature-settings: "kern" 1, "liga" 1;
         }
 
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+        /* ── Typography hierarchy (Rule 5: pop and un-pop text) ─────── */
+        .label-caps {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            line-height: 1;
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 8px;
+        .value-strong {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.2;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #d4d4d8;
-            border-radius: 8px;
+
+        /* ── Scrollbar ───────────────────────────────────────────────── */
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-card); border-radius: 8px; }
+
+        /* ── Animations ──────────────────────────────────────────────── */
+        @keyframes pulseSubtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .85; transform: scale(1.03); }
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #a1a1aa;
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translateY(8px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideUp {
+            0% { opacity: 0; transform: translateY(16px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes floatSubtle {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.96) translateY(4px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-pulse-subtle { animation: pulseSubtle 2s infinite ease-in-out; }
+        .animate-fade-in      { animation: fadeIn 0.35s ease-out forwards; }
+        .animate-slide-up     { animation: slideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-float-subtle { animation: floatSubtle 3s infinite ease-in-out; }
+        .animate-pop-in       { animation: popIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* ── Sticky config bar (Rule 1: light from top = slight shadow below) */
+        .config-bar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            box-shadow: 0 1px 0 var(--border-card), 0 2px 12px rgba(0,0,0,0.05);
+        }
+
+        /* ── Cards — "outset" feel with top-lit shadow (Rule 1) ─────── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 16px;
+            box-shadow: var(--shadow-card, 0 1px 3px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.04));
+            transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+        }
+        .card:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08), 0 12px 32px rgba(0,0,0,0.07);
+            transform: translateY(-1px);
+        }
+        /* card-lift alias for JS-generated cards */
+        .card-lift { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .card-lift:hover { transform: translateY(-1px); box-shadow: var(--shadow-card); }
+
+        /* ── Inputs — "inset" feel (Rule 1) ─────────────────────────── */
+        .field-input {
+            width: 100%;
+            background: var(--bg-muted);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 9px 14px;
+            font-size: 0.875rem;
+            color: var(--text-main);
+            box-shadow: var(--shadow-inset, inset 0 2px 4px rgba(0,0,0,0.05));
+            transition: border-color 0.15s, box-shadow 0.15s;
+            outline: none;
+        }
+        .field-input:focus {
+            border-color: var(--bg-accent);
+            box-shadow: var(--shadow-inset), 0 0 0 3px var(--ring-accent, rgba(0,0,0,0.1));
+        }
+
+        /* ── Config pill bar selects ─────────────────────────────────── */
+        .pill-select {
+            appearance: none;
+            background: transparent;
+            border: none;
+            padding: 0;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            color: var(--text-main);
+            max-width: 150px;
+        }
+
+        /* ── Destination select dropdown arrow ───────────────────────── */
+        .dest-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%235a7a9a' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            padding-right: 26px !important;
+        }
+
+        /* ── Back to top ─────────────────────────────────────────────── */
+        #backToTopBtn {
+            transition: opacity 0.25s ease, transform 0.25s ease, box-shadow 0.2s ease;
+        }
+        #backToTopBtn.visible { opacity: 1; transform: translateY(0); }
+        #backToTopBtn:not(.visible) { opacity: 0; transform: translateY(10px); pointer-events: none; }
+
+        /* ── Employment badge ────────────────────────────────────────── */
+        .emp-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.06em; padding: 2px 8px; border-radius: 6px;
+        }
+
+        /* ── Result card day strip ───────────────────────────────────── */
+        .day-cell {
+            flex: 1; min-width: 38px;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 6px 4px; border-radius: 8px;
+            position: relative; cursor: default;
+            transition: transform 0.12s ease;
+        }
+        .day-cell:hover { transform: translateY(-2px); }
+        .day-cell .day-label { font-size: 8px; text-transform: uppercase; opacity: 0.65; letter-spacing: 0.04em; }
+        .day-cell .day-num   { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 2px; }
+
+        /* ── Pill allocation tags ────────────────────────────────────── */
+        .alloc-pill {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 4px 10px; border-radius: 20px;
+            font-size: 11px; font-weight: 600; line-height: 1;
+            border: 1px solid transparent;
+        }
+
+        /* ── Section label (Rule 3: generous whitespace, clear label hierarchy) */
+        .section-label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        /* ── Smooth result card update ───────────────────────────────── */
+        #resultsCard { transition: opacity 0.25s ease; }
+        #resultsCard.updating { opacity: 0.5; }
+
+        /* ── Config pill hover ───────────────────────────────────────── */
+        .config-pill {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 10px;
+            padding: 7px 12px;
+            min-width: 0;
+            flex: 1;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .config-pill:hover {
+            border-color: var(--bg-accent);
+            box-shadow: 0 0 0 3px var(--ring-accent, rgba(0,0,0,0.08));
         }
     </style>
 </head>
-<body class="p-3 md:p-8 min-h-screen flex flex-col justify-between theme-light">
+<body class="min-h-screen flex flex-col theme-arctic">
+    <!-- Sticky Config Bar -->
+    <div class="config-bar bg-[var(--bg-main)]/92 border-b border-[var(--border-card)]">
+        <div class="max-w-6xl mx-auto w-full px-4 md:px-8 py-2.5 flex items-center gap-3">
 
-    <div class="max-w-6xl mx-auto w-full space-y-8 animate-fade-in">
-        <!-- Modern Minimalist Navigation -->
-        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-neutral-200/60 pb-6 gap-4">
-            <!-- Wallaby Identity & Logo -->
-            <div class="flex items-center gap-4 group cursor-pointer" onmouseenter="hopLogo()" onclick="hopLogo()">
-                <!-- Premium Custom Vector Wallaby Canvas Badge with Hop Animation trigger -->
-                <div id="wallabyLogoContainer" class="relative w-14 h-14 transition-all duration-300 ease-out flex items-center justify-center">
-                    <!-- Sunset Circle Background with Shadow -->
-                    <div class="absolute inset-0 bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 rounded-2xl shadow-md rotate-3 group-hover:rotate-6 transition-transform duration-300"></div>
-                    
-                    <!-- Dynamic Glowing Outback Sun Behind Wallaby -->
-                    <div class="absolute w-6 h-6 bg-yellow-300/30 blur-md top-2 right-2 rounded-full"></div>
-                    
-                    <!-- Highly detailed premium Vector Wallaby hopping forward -->
-                    <svg class="relative w-9 h-9 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Head & Majestic Tall Alert Ears -->
+            <!-- Logo + Brand -->
+            <div class="flex items-center gap-2.5 group cursor-pointer flex-shrink-0 mr-2" onmouseenter="hopLogo()" onclick="hopLogo()">
+                <div id="wallabyLogoContainer" class="relative w-8 h-8 flex items-center justify-center flex-shrink-0">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 rounded-lg shadow-sm rotate-2 group-hover:rotate-6 transition-transform duration-300"></div>
+                    <svg class="relative w-5 h-5 text-white" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12.5 14C11.5 7.5, 13.5 4, 15 6.5C16.5 9, 16 11, 17 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         <path d="M15.5 11.5C15 7, 16.2 6.5, 17.5 8.5C18.8 10.5, 18 11.5, 18.5 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                        <!-- sleek muzzle -->
                         <path d="M17 13C19.5 11.8, 23 12, 24.5 14.2C26 16.4, 25.5 18, 23.2 18.5C20.5 19, 18.2 18.2, 16.5 16.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <!-- Delicate little arms/hands ready for adventure -->
                         <path d="M19 22.5C21 24.5, 23.5 25, 22.5 26.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                        <!-- Organic bouncy tail dynamic swipe line -->
                         <path d="M14 20C11.5 22.5, 10.2 26.5, 10.5 30.5C11 34.5, 6 34.5, 4 34.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <!-- Powerful bounding spring legs -->
                         <path d="M14 30.5C16.5 30.5, 20.2 33.8, 19.2 34.8C18.2 35.8, 13.8 35.8, 12.2 34.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <!-- Friendly eye -->
                         <circle cx="20" cy="14.8" r="1" fill="currentColor"/>
                     </svg>
-
-                    <!-- Magical Twinkling Vector Sparkles -->
-                    <svg class="absolute -top-1.5 -right-1.5 w-4 h-4 text-yellow-300 sparkle-fast" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4L12 0Z"/>
-                    </svg>
-                    <svg class="absolute -bottom-1 -left-1 w-3 h-3 text-white sparkle-slow" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4L12 0Z"/>
-                    </svg>
+                    <svg class="absolute -top-1 -right-1 w-2.5 h-2.5 text-yellow-300 sparkle-fast" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4L12 0Z"/></svg>
                 </div>
-                <div>
-                    <!-- Upgraded animated Typography -->
-                    <h1 class="text-3xl font-black tracking-widest text-[var(--text-main)] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-amber-500 group-hover:to-rose-500 transition-all duration-300 animate-float-subtle uppercase">
-                        Wallaby
-                    </h1>
-                    <!-- Refreshed welcoming slogan -->
-                    <p class="text-[11px] uppercase tracking-wider mt-1.5 font-bold text-[var(--text-muted)] max-w-sm sm:max-w-md">
-                        Maximise your leaves and enjoy your travels - stress free
-                    </p>
+                <div class="hidden sm:block">
+                    <p class="text-sm font-black tracking-widest text-[var(--text-main)] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-amber-500 group-hover:to-rose-500 transition-all duration-300 uppercase leading-none">Wallaby</p>
+                    <p class="text-[8px] uppercase tracking-widest font-semibold text-[var(--text-muted)] leading-none mt-0.5">AU Leave Maximiser</p>
                 </div>
             </div>
-            
-            <!-- Global Configuration Hub Block -->
-            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                <!-- Theme Selector -->
-                <div class="flex items-center gap-2.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-xl shadow-xs transition-colors duration-300">
-                    <i data-lucide="palette" class="w-4 h-4 text-indigo-500"></i>
-                    <div class="text-left">
-                        <p class="text-[9px] text-[var(--text-muted)] font-medium uppercase tracking-wider">Interface Theme</p>
-                        <select id="themeSelector" class="text-xs font-semibold bg-transparent border-none p-0 focus:ring-0 cursor-pointer outline-none text-[var(--text-main)]">
-                            <option value="light">Classic Slate</option>
-                            <option value="dark">Noir Lux</option>
-                            <option value="forest">Emerald Forest</option>
-                            <option value="ochre">Ochre Sunset</option>
-                        </select>
-                    </div>
-                </div>
 
-                <!-- Citizenship Selector with Interactive Comfort Tooltip -->
-                <div class="flex items-center gap-2.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-xl shadow-xs transition-colors duration-300 relative group/citizenship">
-                    <i data-lucide="globe-2" class="w-4 h-4 text-emerald-600"></i>
-                    <div class="text-left">
-                        <div class="flex items-center gap-1">
-                            <p class="text-[9px] text-[var(--text-muted)] font-medium uppercase tracking-wider">Citizenship (Passport)</p>
-                            <i data-lucide="help-circle" class="w-3 h-3 text-[var(--text-muted)] cursor-help"></i>
+            <!-- Divider -->
+            <div class="hidden sm:block w-px h-8 bg-[var(--border-card)] flex-shrink-0"></div>
+
+            <!-- Config Pills — equal width, symmetric row -->
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+
+                <!-- Citizenship -->
+                <div class="relative group/cit flex-1 min-w-0">
+                    <div class="config-pill cursor-pointer">
+                        <i data-lucide="globe-2" class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0"></i>
+                        <div class="min-w-0 flex-1">
+                            <p class="label-caps" style="margin-bottom:3px">Passport</p>
+                            <select id="citizenshipSelector" class="pill-select w-full truncate">
+                                <!-- Populated by JS -->
+                            </select>
                         </div>
-                        <select id="citizenshipSelector" class="text-xs font-semibold bg-transparent border-none p-0 focus:ring-0 cursor-pointer outline-none max-w-[130px] truncate text-[var(--text-main)]">
-                            <!-- Populated programmatically in alphabetical order -->
-                        </select>
                     </div>
-
-                    <!-- Explanatory Tooltip -->
-                    <div class="absolute top-full left-1/2 -translate-x-1/2 mt-2 hidden group-hover/citizenship:block bg-neutral-950 text-neutral-100 text-[10px] p-3 rounded-xl w-64 shadow-xl z-50 leading-relaxed border border-neutral-800">
-                        <p class="font-bold mb-1">Why do we ask for citizenship?</p>
-                        We calculate visa-free entries, e-visas, processing times, and suggest application deadlines for your passport. 
-                        <span class="text-emerald-400 block mt-1 font-medium">Since you work in Australia, we assume you already hold a valid AU work/residency visa.</span>
+                    <div class="absolute top-full left-0 mt-1.5 hidden group-hover/cit:block bg-[var(--bg-card)] text-[var(--text-main)] text-[10px] p-3 rounded-xl w-60 shadow-xl z-50 leading-relaxed border border-[var(--border-card)] animate-pop-in">
+                        <p class="font-bold mb-1 text-[var(--text-main)]">Passport & visa logic</p>
+                        <p class="text-[var(--text-muted)]">Visa-free entries, e-visas and deadlines are calculated from your passport. Your AU residency visa is assumed active.</p>
                     </div>
                 </div>
 
-                <!-- Public Holiday State -->
-                <div class="flex items-center gap-2.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-xl shadow-xs transition-colors duration-300">
-                    <i data-lucide="map-pin" class="w-4 h-4 text-rose-500"></i>
-                    <div class="text-left">
-                        <p class="text-[9px] text-[var(--text-muted)] font-medium uppercase tracking-wider">AU Holiday State</p>
-                        <select id="stateSelector" class="text-xs font-semibold bg-transparent border-none p-0 focus:ring-0 cursor-pointer outline-none text-[var(--text-main)]">
-                            <option value="VIC" selected>Victoria (VIC)</option>
-                            <option value="NSW">New South Wales (NSW)</option>
-                            <option value="QLD">Queensland (QLD)</option>
-                            <option value="WA">Western Australia (WA)</option>
-                            <option value="SA">South Australia (SA)</option>
-                            <option value="TAS">Tasmania (TAS)</option>
-                            <option value="ACT">Australian Capital Territory (ACT)</option>
+                <!-- State -->
+                <div class="config-pill flex-1 min-w-0">
+                    <i data-lucide="map-pin" class="w-3.5 h-3.5 text-rose-500 flex-shrink-0"></i>
+                    <div class="min-w-0 flex-1">
+                        <p class="label-caps" style="margin-bottom:3px">State</p>
+                        <select id="stateSelector" class="pill-select w-full">
+                            <option value="NSW">New South Wales</option>
+                            <option value="VIC" selected>Victoria</option>
+                            <option value="QLD">Queensland</option>
+                            <option value="WA">Western Australia</option>
+                            <option value="SA">South Australia</option>
+                            <option value="TAS">Tasmania</option>
+                            <option value="ACT">ACT</option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Today Display -->
-                <div class="flex items-center gap-2.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-xl shadow-xs transition-colors duration-300">
-                    <i data-lucide="calendar" class="w-4 h-4 text-blue-500"></i>
-                    <div class="text-left">
-                        <p class="text-[9px] text-[var(--text-muted)] font-medium uppercase tracking-wider">Today's Date (AU)</p>
-                        <p class="text-xs font-semibold" id="todayDisplayDate">06/06/2026</p>
+                <!-- Theme -->
+                <div class="config-pill flex-1 min-w-0">
+                    <i data-lucide="palette" class="w-3.5 h-3.5 text-violet-500 flex-shrink-0"></i>
+                    <div class="min-w-0 flex-1">
+                        <p class="label-caps" style="margin-bottom:3px">Theme</p>
+                        <select id="themeSelector" class="pill-select w-full">
+                            <option value="arctic">❄️ Arctic</option>
+                            <option value="midnight">🌌 Midnight</option>
+                            <option value="terra">🏜️ Terra</option>
+                            <option value="matcha">🍵 Matcha</option>
+                        </select>
                     </div>
                 </div>
+
+                <!-- Today Date — fixed width, no select -->
+                <div class="config-pill flex-shrink-0" style="flex:0 0 auto; min-width:120px">
+                    <i data-lucide="calendar-days" class="w-3.5 h-3.5 text-blue-500 flex-shrink-0"></i>
+                    <div>
+                        <p class="label-caps" style="margin-bottom:3px">Today (AEST)</p>
+                        <p class="value-strong text-xs" id="todayDisplayDate">—</p>
+                    </div>
+                </div>
+
             </div>
-        </header>
+        </div>
+    </div>
 
-        <!-- Core Work Bench Split -->
+    <div class="max-w-6xl mx-auto w-full space-y-6 animate-fade-in px-3 md:px-8 pt-6 pb-12">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
             <!-- Left Grid: Settings & Inputs (Span 4) -->
             <div class="lg:col-span-4 space-y-6">
                 <!-- Employment Configuration Card -->
-                <div class="bg-[var(--bg-card)] border border-[var(--border-card)] rounded-2xl p-6 shadow-xs hover:border-neutral-300 transition-all duration-300">
-                    <div class="flex items-center gap-2 mb-4 border-b border-neutral-100 pb-3">
-                        <i data-lucide="sliders" class="w-4 h-4 text-[var(--text-muted)]"></i>
-                        <h2 class="text-xs font-bold tracking-wider uppercase text-[var(--text-muted)]">Employment Parameters</h2>
+                <div class="card p-6">
+                    <div class="flex items-center gap-2 mb-5">
+                        <i data-lucide="briefcase" class="w-4 h-4 text-[var(--text-muted)]"></i>
+                        <h2 class="text-xs font-bold tracking-wider uppercase text-[var(--text-muted)]">Employment</h2>
                     </div>
                     
                     <div class="space-y-4">
+                        <!-- Employment Type -->
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-[var(--text-muted)]">Employment Type</label>
+                            <select id="employmentType" class="field-input cursor-pointer">
+                                <option value="fulltime">Full Time (38h/wk)</option>
+                                <option value="parttime">Part Time (custom hours)</option>
+                                <option value="casual">Casual (no paid leave)</option>
+                                <option value="shift">Shift Worker (5-week AL)</option>
+                            </select>
+                            <!-- Dynamic entitlement badge -->
+                            <div id="empTypeBadge" class="mt-2 p-2.5 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-card)] text-[10px] text-[var(--text-muted)] leading-relaxed"></div>
+                        </div>
+
+                        <!-- Start Date -->
                         <div>
                             <label class="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-[var(--text-muted)]">Employment Start Date</label>
-                            <input type="date" id="startDate" value="2026-02-09" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-200 transition-all text-[var(--text-main)]">
-                            <span class="text-[10px] text-[var(--text-muted)] block mt-1">Select start date (parsed locally)</span>
+                            <input type="date" id="startDate" value="2026-02-09" class="field-input">
                         </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-[var(--text-muted)]">Weekly Hours</label>
-                                <input type="number" id="weeklyHours" value="38" min="1" max="38" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-all text-[var(--text-main)]">
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-[var(--text-muted)]">ADO Rate/Mo</label>
-                                <input type="number" id="adoRate" value="1" min="0" max="2" step="0.5" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-all text-[var(--text-main)]">
-                            </div>
+
+                        <!-- Weekly Hours (hidden for casual/fulltime) -->
+                        <div id="weeklyHoursRow">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-[var(--text-muted)]">Weekly Hours</label>
+                            <input type="number" id="weeklyHours" value="38" min="1" max="38" class="field-input">
+                            <span class="text-[10px] text-[var(--text-muted)] block mt-1">Pro-rata applied for hours below 38h</span>
+                        </div>
+
+                        <!-- ADO Rate -->
+                        <div id="adoRateRow">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-[var(--text-muted)]">ADO Rate / Month</label>
+                            <input type="number" id="adoRate" value="1" min="0" max="2" step="0.5" class="field-input">
+                            <span class="text-[10px] text-[var(--text-muted)] block mt-1">Accrued Days Off (industry specific)</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Balance & Exhaustion Ledger with Override System -->
-                <div class="bg-[var(--bg-card)] border border-[var(--border-card)] rounded-2xl p-6 shadow-xs hover:border-neutral-300 transition-all duration-300 space-y-4">
+                <div class="card p-6 space-y-5">
                     <div class="flex items-center justify-between border-b border-neutral-100 pb-3">
                         <div class="flex items-center gap-2">
                             <i data-lucide="archive" class="w-4 h-4 text-[var(--text-muted)]"></i>
@@ -305,7 +454,7 @@
 
                     <!-- Auto Inputs Panel -->
                     <div id="autoInputs" class="hidden space-y-3">
-                        <p class="text-xs leading-relaxed text-[var(--text-muted)]">Enter leave days you have already taken/exhausted between your Start Date and <strong class="text-neutral-800">06/06/2026</strong>:</p>
+                        <p class="text-xs leading-relaxed text-[var(--text-muted)]">Enter leave days you have already taken/exhausted between your Start Date and <strong class="text-neutral-800" id="autoTodayLabel"></strong>:</p>
                         <div class="grid grid-cols-3 gap-3">
                             <div class="bg-[var(--bg-muted)] p-2.5 rounded-xl border border-[var(--border-card)]">
                                 <label class="block text-[10px] font-semibold uppercase tracking-wider text-center mb-1 text-[var(--text-muted)]">Annual</label>
@@ -324,7 +473,7 @@
 
                     <!-- Manual Override Inputs Panel -->
                     <div id="manualInputs" class="space-y-3 animate-fade-in">
-                        <p class="text-xs leading-relaxed text-[var(--text-muted)]">Type your actual net remaining balances today (<strong class="opacity-80">06/06/2026</strong>) to seed future accruals:</p>
+                        <p class="text-xs leading-relaxed text-[var(--text-muted)]">Type your actual net remaining balances today (<strong class="opacity-80" id="manualTodayLabel"></strong>) to seed future accruals:</p>
                         <div class="grid grid-cols-3 gap-3">
                             <div class="bg-[var(--bg-muted)] p-2.5 rounded-xl border border-[var(--border-card)]">
                                 <label class="block text-[10px] font-semibold uppercase tracking-wider text-center mb-1 text-[var(--text-muted)]">Annual</label>
@@ -381,7 +530,7 @@
 
             <!-- Right Grid: Live Interactive Optimizer Matrix (Span 8) -->
             <div class="lg:col-span-8 space-y-6">
-                <div class="bg-[var(--bg-card)] border border-[var(--border-card)] rounded-2xl p-6 shadow-xs hover:border-neutral-300 transition-all duration-300">
+                <div class="card p-5">
                     <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
                         <div>
                             <h2 class="text-lg font-medium text-[var(--text-main)]">Travel Architecture Planner</h2>
@@ -430,7 +579,7 @@
                 </div>
 
                 <!-- Live Output Screen -->
-                <div id="resultsCard" class="hidden bg-[var(--bg-card)] border border-[var(--border-card)] rounded-2xl p-6 shadow-sm space-y-6 animate-slide-up">
+                <div id="resultsCard" class="hidden card p-6 space-y-6 animate-slide-up">
                     <div class="flex items-center justify-between border-b border-neutral-100 pb-4">
                         <div>
                             <h3 class="text-sm font-bold tracking-wider uppercase text-[var(--text-muted)]">Chronological Simulation Report</h3>
@@ -471,13 +620,20 @@
         </div>
     </div>
 
-    <!-- Simple Modern Footer -->
-    <footer class="max-w-6xl mx-auto w-full text-center py-8 text-xs border-t border-neutral-200/50 mt-12 text-[var(--text-muted)] relative">
-        <p>Wallaby leave engine. Calculated strictly under Australian Fair Work Regulations. Accrual coefficient: 0.076923.</p>
+    <!-- Disclaimer Footer -->
+    <footer class="max-w-6xl mx-auto w-full px-3 md:px-8 py-8 text-xs border-t border-[var(--border-card)] mt-8 text-[var(--text-muted)]">
+        <div class="bg-amber-50/60 border border-amber-200/60 rounded-2xl p-4 mb-4 text-amber-900 space-y-1.5">
+            <p class="font-bold uppercase tracking-wider text-[10px] text-amber-700">⚠️ Important Disclaimer — Please Read</p>
+            <p><strong>Leave calculations</strong> are indicative only. Accrual rules are based on Australian Fair Work Act standards for each employment type. Casual workers do not accrue paid leave. Always verify your actual entitlements with your HR or payroll team — enterprise agreements and awards may vary.</p>
+            <p><strong>Visa information</strong> is general guidance based on publicly available policy as of 2025. Visa rules change frequently — always verify with the official embassy or government immigration website before booking. This is not legal or immigration advice.</p>
+            <p><strong>Flight prices</strong> are not estimated. The Google Flights links open live search results — real current fares, not fabricated numbers.</p>
+        </div>
+        <p class="text-center text-[var(--text-muted)]">Wallaby · Australian Fair Work compliant leave engine · v3</p>
     </footer>
 
-    <!-- Back to Top Button -->
-    <button id="backToTopBtn" onclick="scrollToTop()" class="fixed bottom-6 right-6 p-3 bg-[var(--bg-accent)] text-[var(--text-accent)] hover:bg-[var(--bg-accent-hover)] rounded-full shadow-lg transition-all duration-300 transform translate-y-16 opacity-0 hover:-translate-y-1 z-50 cursor-pointer border border-[var(--border-card)]">
+    <!-- Back to Top Button — polished fixed FAB -->
+    <button id="backToTopBtn" onclick="scrollToTop()" title="Back to top"
+        class="fixed bottom-6 right-6 w-11 h-11 bg-[var(--bg-accent)] text-[var(--text-accent)] hover:bg-[var(--bg-accent-hover)] rounded-full shadow-lg z-50 cursor-pointer flex items-center justify-center hover:shadow-xl">
         <i data-lucide="arrow-up" class="w-5 h-5"></i>
     </button>
 
@@ -734,38 +890,228 @@
             { code: "ZW", name: "Zimbabwe" }
         ];
 
-        // Specific visa override rules for standard preset passports
-        const visaRules = {
-            AU: {
-                "Melbourne": { needVisa: false, type: "Domestic", processingDays: 0, notes: "No visa required for domestic destinations." },
-                "Tasmania": { needVisa: false, type: "Domestic", processingDays: 0, notes: "No visa required for domestic destinations." },
-                "Thailand": { needVisa: false, type: "Visa Exempt (60 Days)", processingDays: 0, notes: "Australian passport holders enjoy visa exemption up to 60 days on arrival." },
-                "Vietnam": { needVisa: true, type: "E-Visa", processingDays: 4, applyWindowDays: 14, notes: "Requires Vietnamese E-Visa online prior to departure." },
-                "Canada": { needVisa: true, type: "eTA", processingDays: 2, applyWindowDays: 10, notes: "Requires Electronic Travel Authorization (eTA) online." },
-                "NZ": { needVisa: false, type: "SCV Arrival", processingDays: 0, notes: "Special Category Visa (SCV) is issued on arrival in NZ." },
-                "Canada / NZ": { needVisa: true, type: "eTA Required", processingDays: 2, applyWindowDays: 10, notes: "eTA is needed for Canada leg; NZ travel is visa-free." }
-            },
-            NZ: {
-                "Melbourne": { needVisa: false, type: "Domestic Resident SCV", processingDays: 0, notes: "No visa needed. SCV granted on arrival in Australia." },
-                "Tasmania": { needVisa: false, type: "Domestic Resident SCV", processingDays: 0, notes: "No visa needed. SCV granted on arrival in Australia." },
-                "Thailand": { needVisa: false, type: "Visa Exempt (60 Days)", processingDays: 0, notes: "New Zealand passport holders enjoy visa exemption up to 60 days on arrival." },
-                "Vietnam": { needVisa: true, type: "E-Visa", processingDays: 4, applyWindowDays: 14, notes: "Requires Vietnamese E-Visa online prior to departure." },
-                "Canada": { needVisa: true, type: "eTA", processingDays: 2, applyWindowDays: 10, notes: "Requires Electronic Travel Authorization (eTA) online." },
-                "NZ": { needVisa: false, type: "Home Citizen", processingDays: 0, notes: "Traveling back to your home country passport territory." },
-                "Canada / NZ": { needVisa: true, type: "eTA Required", processingDays: 2, applyWindowDays: 10, notes: "eTA is needed for Canada leg; NZ is your home territory." }
-            }
-        };
+        // Always use real current date in AEST (Australia/Sydney) timezone
+        function getTodayAEST() {
+            const fmt = new Intl.DateTimeFormat('en-AU', {
+                timeZone: 'Australia/Sydney',
+                year: 'numeric', month: '2-digit', day: '2-digit'
+            });
+            const parts = fmt.formatToParts(new Date());
+            const d = Object.fromEntries(parts.filter(p => p.type !== 'literal').map(p => [p.type, parseInt(p.value)]));
+            return new Date(d.year, d.month - 1, d.day);
+        }
+        const TODAY = getTodayAEST();
 
-        // Today is June 6, 2026 (local date representation)
-        const TODAY = new Date(2026, 5, 6);
+        // ─────────────────────────────────────────────────────────────────────
+        // DESTINATION DATABASE — grouped by region, each entry has:
+        //   label: display name shown in dropdown
+        //   key:   canonical string passed to visa engine (matches fuzzy keywords)
+        // ─────────────────────────────────────────────────────────────────────
+        const DESTINATIONS = [
+            // ── Australia (Domestic) ──────────────────────────────────────────
+            { group: "🦘 Australia (Domestic)", label: "Sydney, NSW",            key: "sydney" },
+            { group: "🦘 Australia (Domestic)", label: "Melbourne, VIC",         key: "melbourne" },
+            { group: "🦘 Australia (Domestic)", label: "Brisbane, QLD",          key: "brisbane" },
+            { group: "🦘 Australia (Domestic)", label: "Perth, WA",              key: "perth" },
+            { group: "🦘 Australia (Domestic)", label: "Adelaide, SA",           key: "adelaide" },
+            { group: "🦘 Australia (Domestic)", label: "Gold Coast, QLD",        key: "gold coast" },
+            { group: "🦘 Australia (Domestic)", label: "Cairns, QLD",            key: "cairns" },
+            { group: "🦘 Australia (Domestic)", label: "Tasmania",               key: "tasmania" },
+            { group: "🦘 Australia (Domestic)", label: "Hobart, TAS",            key: "hobart" },
+            { group: "🦘 Australia (Domestic)", label: "Darwin, NT",             key: "darwin" },
+            { group: "🦘 Australia (Domestic)", label: "Uluru / Alice Springs",  key: "uluru" },
+            { group: "🦘 Australia (Domestic)", label: "Whitsundays, QLD",       key: "whitsundays" },
+            { group: "🦘 Australia (Domestic)", label: "Byron Bay, NSW",         key: "byron bay" },
+            { group: "🦘 Australia (Domestic)", label: "Port Douglas, QLD",      key: "port douglas" },
+            { group: "🦘 Australia (Domestic)", label: "Broome, WA",             key: "broome" },
+            // ── South East Asia ───────────────────────────────────────────────
+            { group: "🌏 South East Asia",     label: "Bali, Indonesia",         key: "bali" },
+            { group: "🌏 South East Asia",     label: "Jakarta, Indonesia",      key: "jakarta" },
+            { group: "🌏 South East Asia",     label: "Lombok, Indonesia",       key: "lombok" },
+            { group: "🌏 South East Asia",     label: "Komodo, Indonesia",       key: "komodo" },
+            { group: "🌏 South East Asia",     label: "Raja Ampat, Indonesia",   key: "raja ampat" },
+            { group: "🌏 South East Asia",     label: "Bangkok, Thailand",       key: "bangkok" },
+            { group: "🌏 South East Asia",     label: "Phuket, Thailand",        key: "phuket" },
+            { group: "🌏 South East Asia",     label: "Chiang Mai, Thailand",    key: "chiang mai" },
+            { group: "🌏 South East Asia",     label: "Koh Samui, Thailand",     key: "koh samui" },
+            { group: "🌏 South East Asia",     label: "Krabi, Thailand",         key: "krabi" },
+            { group: "🌏 South East Asia",     label: "Ho Chi Minh City, Vietnam", key: "ho chi minh" },
+            { group: "🌏 South East Asia",     label: "Hanoi, Vietnam",          key: "hanoi" },
+            { group: "🌏 South East Asia",     label: "Da Nang / Hoi An, Vietnam", key: "danang" },
+            { group: "🌏 South East Asia",     label: "Ha Long Bay, Vietnam",    key: "ha long" },
+            { group: "🌏 South East Asia",     label: "Phu Quoc, Vietnam",       key: "phu quoc" },
+            { group: "🌏 South East Asia",     label: "Singapore",               key: "singapore" },
+            { group: "🌏 South East Asia",     label: "Kuala Lumpur, Malaysia",  key: "kuala lumpur" },
+            { group: "🌏 South East Asia",     label: "Penang, Malaysia",        key: "penang" },
+            { group: "🌏 South East Asia",     label: "Langkawi, Malaysia",      key: "langkawi" },
+            { group: "🌏 South East Asia",     label: "Kota Kinabalu, Borneo",   key: "kota kinabalu" },
+            { group: "🌏 South East Asia",     label: "Manila, Philippines",     key: "manila" },
+            { group: "🌏 South East Asia",     label: "Palawan, Philippines",    key: "palawan" },
+            { group: "🌏 South East Asia",     label: "Boracay, Philippines",    key: "boracay" },
+            { group: "🌏 South East Asia",     label: "Cebu, Philippines",       key: "cebu" },
+            { group: "🌏 South East Asia",     label: "Siargao, Philippines",    key: "siargao" },
+            { group: "🌏 South East Asia",     label: "Siem Reap, Cambodia",     key: "siem reap" },
+            { group: "🌏 South East Asia",     label: "Phnom Penh, Cambodia",    key: "phnom penh" },
+            { group: "🌏 South East Asia",     label: "Luang Prabang, Laos",     key: "luang prabang" },
+            { group: "🌏 South East Asia",     label: "Vientiane, Laos",         key: "vientiane" },
+            { group: "🌏 South East Asia",     label: "Yangon, Myanmar",         key: "yangon" },
+            { group: "🌏 South East Asia",     label: "Bagan, Myanmar",          key: "bagan" },
+            // ── North Asia ────────────────────────────────────────────────────
+            { group: "🗾 North Asia",          label: "Tokyo, Japan",            key: "tokyo" },
+            { group: "🗾 North Asia",          label: "Osaka, Japan",            key: "osaka" },
+            { group: "🗾 North Asia",          label: "Kyoto, Japan",            key: "kyoto" },
+            { group: "🗾 North Asia",          label: "Hiroshima, Japan",        key: "hiroshima" },
+            { group: "🗾 North Asia",          label: "Sapporo, Japan",          key: "sapporo" },
+            { group: "🗾 North Asia",          label: "Seoul, South Korea",      key: "seoul" },
+            { group: "🗾 North Asia",          label: "Busan, South Korea",      key: "busan" },
+            { group: "🗾 North Asia",          label: "Jeju Island, South Korea",key: "jeju" },
+            { group: "🗾 North Asia",          label: "Beijing, China",          key: "beijing" },
+            { group: "🗾 North Asia",          label: "Shanghai, China",         key: "shanghai" },
+            { group: "🗾 North Asia",          label: "Chengdu, China",          key: "chengdu" },
+            { group: "🗾 North Asia",          label: "Guilin, China",           key: "guilin" },
+            { group: "🗾 North Asia",          label: "Hong Kong",               key: "hong kong" },
+            { group: "🗾 North Asia",          label: "Taipei, Taiwan",          key: "taiwan" },
+            // ── South Asia ────────────────────────────────────────────────────
+            { group: "🕌 South Asia",          label: "Maldives",                key: "maldives" },
+            { group: "🕌 South Asia",          label: "Colombo / Galle, Sri Lanka", key: "sri lanka" },
+            { group: "🕌 South Asia",          label: "Kandy, Sri Lanka",        key: "kandy" },
+            { group: "🕌 South Asia",          label: "Kathmandu, Nepal",        key: "kathmandu" },
+            { group: "🕌 South Asia",          label: "Pokhara / Annapurna, Nepal", key: "pokhara" },
+            { group: "🕌 South Asia",          label: "Thimphu / Paro, Bhutan", key: "bhutan" },
+            { group: "🕌 South Asia",          label: "Goa, India",              key: "goa" },
+            { group: "🕌 South Asia",          label: "Mumbai, India",           key: "mumbai" },
+            { group: "🕌 South Asia",          label: "Delhi / Agra, India",     key: "delhi" },
+            { group: "🕌 South Asia",          label: "Rajasthan, India",        key: "rajasthan" },
+            { group: "🕌 South Asia",          label: "Kerala, India",           key: "kerala" },
+            // ── Pacific ───────────────────────────────────────────────────────
+            { group: "🌺 Pacific",             label: "Auckland, New Zealand",   key: "auckland" },
+            { group: "🌺 Pacific",             label: "Queenstown, New Zealand", key: "queenstown" },
+            { group: "🌺 Pacific",             label: "Wellington, New Zealand", key: "wellington" },
+            { group: "🌺 Pacific",             label: "Christchurch, NZ",        key: "christchurch" },
+            { group: "🌺 Pacific",             label: "Fiji",                    key: "fiji" },
+            { group: "🌺 Pacific",             label: "Bora Bora / Tahiti",      key: "bora bora" },
+            { group: "🌺 Pacific",             label: "Cook Islands",            key: "cook islands" },
+            { group: "🌺 Pacific",             label: "Samoa",                   key: "samoa" },
+            { group: "🌺 Pacific",             label: "Tonga",                   key: "tonga" },
+            { group: "🌺 Pacific",             label: "Vanuatu",                 key: "vanuatu" },
+            { group: "🌺 Pacific",             label: "Papua New Guinea",        key: "papua new guinea" },
+            // ── Middle East ───────────────────────────────────────────────────
+            { group: "🏛️ Middle East",         label: "Dubai, UAE",              key: "dubai" },
+            { group: "🏛️ Middle East",         label: "Abu Dhabi, UAE",          key: "abu dhabi" },
+            { group: "🏛️ Middle East",         label: "Ras Al Khaimah, UAE",     key: "ras al khaimah" },
+            { group: "🏛️ Middle East",         label: "Istanbul, Türkiye",       key: "istanbul" },
+            { group: "🏛️ Middle East",         label: "Cappadocia, Türkiye",     key: "cappadocia" },
+            { group: "🏛️ Middle East",         label: "Antalya, Türkiye",        key: "antalya" },
+            { group: "🏛️ Middle East",         label: "Petra / Wadi Rum, Jordan",key: "petra" },
+            { group: "🏛️ Middle East",         label: "Jerusalem / Tel Aviv, Israel", key: "israel" },
+            { group: "🏛️ Middle East",         label: "Riyadh / AlUla, Saudi Arabia", key: "saudi arabia" },
+            // ── Africa ────────────────────────────────────────────────────────
+            { group: "🦁 Africa",              label: "Cape Town, South Africa", key: "cape town" },
+            { group: "🦁 Africa",              label: "Johannesburg / Kruger, SA", key: "kruger" },
+            { group: "🦁 Africa",              label: "Marrakech, Morocco",      key: "marrakech" },
+            { group: "🦁 Africa",              label: "Fes / Rabat, Morocco",    key: "fes" },
+            { group: "🦁 Africa",              label: "Cairo / Giza, Egypt",     key: "cairo" },
+            { group: "🦁 Africa",              label: "Luxor / Aswan, Egypt",    key: "luxor" },
+            { group: "🦁 Africa",              label: "Hurghada / Sharm, Egypt", key: "hurghada" },
+            { group: "🦁 Africa",              label: "Nairobi / Masai Mara, Kenya", key: "nairobi" },
+            { group: "🦁 Africa",              label: "Zanzibar / Serengeti, Tanzania", key: "zanzibar" },
+            { group: "🦁 Africa",              label: "Kigali, Rwanda",          key: "kigali" },
+            { group: "🦁 Africa",              label: "Addis Ababa, Ethiopia",   key: "addis ababa" },
+            // ── Europe ────────────────────────────────────────────────────────
+            { group: "🏰 Europe",              label: "London, UK",              key: "london" },
+            { group: "🏰 Europe",              label: "Edinburgh, Scotland",     key: "edinburgh" },
+            { group: "🏰 Europe",              label: "Paris, France",           key: "paris" },
+            { group: "🏰 Europe",              label: "Nice / Côte d'Azur",     key: "nice" },
+            { group: "🏰 Europe",              label: "Rome, Italy",             key: "rome" },
+            { group: "🏰 Europe",              label: "Florence, Italy",         key: "florence" },
+            { group: "🏰 Europe",              label: "Venice, Italy",           key: "venice" },
+            { group: "🏰 Europe",              label: "Amalfi / Naples, Italy",  key: "naples" },
+            { group: "🏰 Europe",              label: "Barcelona, Spain",        key: "barcelona" },
+            { group: "🏰 Europe",              label: "Madrid, Spain",           key: "madrid" },
+            { group: "🏰 Europe",              label: "Seville, Spain",          key: "seville" },
+            { group: "🏰 Europe",              label: "Lisbon, Portugal",        key: "lisbon" },
+            { group: "🏰 Europe",              label: "Porto, Portugal",         key: "porto" },
+            { group: "🏰 Europe",              label: "Algarve, Portugal",       key: "algarve" },
+            { group: "🏰 Europe",              label: "Madeira, Portugal",       key: "madeira" },
+            { group: "🏰 Europe",              label: "Amsterdam, Netherlands",  key: "amsterdam" },
+            { group: "🏰 Europe",              label: "Berlin, Germany",         key: "berlin" },
+            { group: "🏰 Europe",              label: "Munich, Germany",         key: "munich" },
+            { group: "🏰 Europe",              label: "Vienna, Austria",         key: "vienna" },
+            { group: "🏰 Europe",              label: "Zurich / Geneva, Switzerland", key: "zurich" },
+            { group: "🏰 Europe",              label: "Prague, Czech Republic",  key: "prague" },
+            { group: "🏰 Europe",              label: "Budapest, Hungary",       key: "budapest" },
+            { group: "🏰 Europe",              label: "Warsaw / Krakow, Poland", key: "warsaw" },
+            { group: "🏰 Europe",              label: "Athens, Greece",          key: "athens" },
+            { group: "🏰 Europe",              label: "Santorini, Greece",       key: "santorini" },
+            { group: "🏰 Europe",              label: "Mykonos, Greece",         key: "mykonos" },
+            { group: "🏰 Europe",              label: "Dubrovnik, Croatia",      key: "dubrovnik" },
+            { group: "🏰 Europe",              label: "Stockholm, Sweden",       key: "stockholm" },
+            { group: "🏰 Europe",              label: "Copenhagen, Denmark",     key: "copenhagen" },
+            { group: "🏰 Europe",              label: "Oslo, Norway",            key: "oslo" },
+            { group: "🏰 Europe",              label: "Helsinki, Finland",       key: "helsinki" },
+            { group: "🏰 Europe",              label: "Reykjavik, Iceland",      key: "reykjavik" },
+            { group: "🏰 Europe",              label: "Brussels, Belgium",       key: "brussels" },
+            { group: "🏰 Europe",              label: "Tallinn, Estonia",        key: "tallinn" },
+            { group: "🏰 Europe",              label: "Riga, Latvia",            key: "riga" },
+            // ── Caucasus & Central Asia ───────────────────────────────────────
+            { group: "🏔️ Caucasus & Central Asia", label: "Tbilisi / Kazbegi, Georgia", key: "tbilisi" },
+            { group: "🏔️ Caucasus & Central Asia", label: "Yerevan, Armenia",    key: "yerevan" },
+            { group: "🏔️ Caucasus & Central Asia", label: "Baku, Azerbaijan",    key: "baku" },
+            { group: "🏔️ Caucasus & Central Asia", label: "Samarkand / Bukhara, Uzbekistan", key: "samarkand" },
+            { group: "🏔️ Caucasus & Central Asia", label: "Almaty, Kazakhstan",  key: "almaty" },
+            // ── Americas ──────────────────────────────────────────────────────
+            { group: "🗽 Americas",            label: "New York, USA",           key: "new york" },
+            { group: "🗽 Americas",            label: "Los Angeles, USA",        key: "los angeles" },
+            { group: "🗽 Americas",            label: "Hawaii, USA",             key: "hawaii" },
+            { group: "🗽 Americas",            label: "Las Vegas, USA",          key: "las vegas" },
+            { group: "🗽 Americas",            label: "San Francisco, USA",      key: "san francisco" },
+            { group: "🗽 Americas",            label: "Chicago, USA",            key: "chicago" },
+            { group: "🗽 Americas",            label: "Miami, USA",              key: "miami" },
+            { group: "🗽 Americas",            label: "Yellowstone / Grand Canyon", key: "yellowstone" },
+            { group: "🗽 Americas",            label: "Toronto / Niagara, Canada", key: "toronto" },
+            { group: "🗽 Americas",            label: "Vancouver, Canada",       key: "vancouver" },
+            { group: "🗽 Americas",            label: "Banff / Jasper, Canada",  key: "banff" },
+            { group: "🗽 Americas",            label: "Montreal, Canada",        key: "montreal" },
+            { group: "🗽 Americas",            label: "Mexico City, Mexico",     key: "mexico city" },
+            { group: "🗽 Americas",            label: "Cancún / Tulum, Mexico",  key: "cancun" },
+            { group: "🗽 Americas",            label: "Oaxaca, Mexico",          key: "oaxaca" },
+            { group: "🗽 Americas",            label: "Havana, Cuba",            key: "havana" },
+            { group: "🗽 Americas",            label: "San José / Arenal, Costa Rica", key: "costa rica" },
+            { group: "🗽 Americas",            label: "Lima / Machu Picchu, Peru", key: "machu picchu" },
+            { group: "🗽 Americas",            label: "Buenos Aires, Argentina", key: "buenos aires" },
+            { group: "🗽 Americas",            label: "Patagonia, Argentina/Chile", key: "patagonia" },
+            { group: "🗽 Americas",            label: "Rio de Janeiro, Brazil",  key: "rio" },
+            { group: "🗽 Americas",            label: "São Paulo, Brazil",       key: "sao paulo" },
+            { group: "🗽 Americas",            label: "Iguazu Falls, Brazil/Argentina", key: "iguazu" },
+            { group: "🗽 Americas",            label: "Cartagena, Colombia",     key: "cartagena" },
+            { group: "🗽 Americas",            label: "Santiago, Chile",         key: "santiago" },
+            { group: "🗽 Americas",            label: "Atacama Desert, Chile",   key: "atacama" },
+        ];
 
-        // Initialized realistic target vacations from the prompt
+        // Build grouped options HTML string once (reused for every new row)
+        function buildDestOptionsHTML(selectedKey) {
+            let html = `<option value="">— Choose destination —</option>`;
+            let currentGroup = '';
+            DESTINATIONS.forEach(d => {
+                if (d.group !== currentGroup) {
+                    if (currentGroup) html += '</optgroup>';
+                    html += `<optgroup label="${d.group}">`;
+                    currentGroup = d.group;
+                }
+                const sel = (selectedKey && d.key === selectedKey) ? ' selected' : '';
+                html += `<option value="${d.key}"${sel}>${d.label}</option>`;
+            });
+            if (currentGroup) html += '</optgroup>';
+            return html;
+        }
+
+        // Initialized example vacations — now use canonical keys
         const initialTrips = [
-            { destination: "Melbourne", start: "2026-06-25", end: "2026-06-29", flex: "exact" }, // June end, 5 days
-            { destination: "Thailand", start: "2026-07-10", end: "2026-07-19", flex: "flex-2" }, // July, 10 days
-            { destination: "Vietnam", start: "2026-08-14", end: "2026-08-25", flex: "flex-2" },  // August, 12 days
-            { destination: "Tasmania", start: "2026-09-18", end: "2026-09-21", flex: "exact" },  // September, 4 days
-            { destination: "Canada / NZ", start: "2026-10-02", end: "2026-10-15", flex: "flex-2" } // October, 14 days
+            { destKey: "melbourne",   start: "2026-06-25", end: "2026-06-29", flex: "exact" },
+            { destKey: "phuket",      start: "2026-07-10", end: "2026-07-19", flex: "flex-2" },
+            { destKey: "hanoi",       start: "2026-08-14", end: "2026-08-25", flex: "flex-2" },
+            { destKey: "tasmania",    start: "2026-09-18", end: "2026-09-21", flex: "exact" },
+            { destKey: "vancouver",   start: "2026-10-02", end: "2026-10-15", flex: "flex-2" },
         ];
 
         // Trigger interactive logo hop animation
@@ -776,6 +1122,13 @@
                 // Trigger reflow to restart animation smoothly
                 void logo.offsetWidth;
                 logo.classList.add('animate-custom-hop');
+            }
+        }
+
+        // Safe wrapper — lucide may not load in all environments
+        function safeCreateIcons() {
+            if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+                lucide.createIcons();
             }
         }
 
@@ -793,57 +1146,85 @@
                 });
             }
 
-            lucide.createIcons();
+            // Safe lucide init
+            safeCreateIcons();
             
-            // Build requested initial planner rows
-            initialTrips.forEach(t => addTripRow(t.destination, t.start, t.end, t.flex));
+            // Build initial planner rows
+            initialTrips.forEach(t => addTripRow(t.destKey, t.start, t.end, t.flex));
             
-            // Theme selector binding
+            // Theme selector
             const themeSelector = document.getElementById('themeSelector');
-            themeSelector.addEventListener('change', (e) => {
-                setTheme(e.target.value);
-            });
-            // Try loading cached theme
-            const cachedTheme = localStorage.getItem('chronos-theme') || 'light';
+            themeSelector.addEventListener('change', (e) => setTheme(e.target.value));
+            const cachedTheme = localStorage.getItem('wallaby-theme') || 'arctic';
             themeSelector.value = cachedTheme;
             setTheme(cachedTheme);
 
-            // Scroll listener for back to top button
+            // Scroll listener for back-to-top
             window.addEventListener('scroll', handleScroll);
+            handleScroll(); // initialise visibility
 
-            // Continuous calculation bindings
-            const bindings = [
+            // Employment type — update badge + recalculate
+            const empType = document.getElementById('employmentType');
+            if (empType) {
+                empType.addEventListener('change', () => {
+                    updateEmploymentBadge();
+                    runContinuousRecalculation();
+                    optimizeLeave(false); // no scroll
+                });
+                updateEmploymentBadge(); // init badge
+            }
+
+            // Balance ledger bindings (no scroll jump)
+            const calcBindings = [
                 'startDate', 'weeklyHours', 'adoRate', 'balanceMode',
                 'exhaustedAnnual', 'exhaustedSick', 'exhaustedAdo',
-                'manualAnnual', 'manualSick', 'manualAdo', 'stateSelector', 'citizenshipSelector'
+                'manualAnnual', 'manualSick', 'manualAdo'
             ];
-            bindings.forEach(id => {
-                document.getElementById(id).addEventListener('input', runContinuousRecalculation);
-                document.getElementById(id).addEventListener('change', runContinuousRecalculation);
+            calcBindings.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', () => { runContinuousRecalculation(); optimizeLeave(false); });
+                    el.addEventListener('change', () => { runContinuousRecalculation(); optimizeLeave(false); });
+                }
             });
 
-            // Re-optimize when order priorities change
-            document.getElementById('customOrderToggle').addEventListener('change', optimizeLeave);
+            // State + citizenship → full re-optimize (no scroll)
+            const stateEl = document.getElementById('stateSelector');
+            if (stateEl) stateEl.addEventListener('change', () => optimizeLeave(false));
+            const citizenEl = document.getElementById('citizenshipSelector');
+            if (citizenEl) citizenEl.addEventListener('change', () => optimizeLeave(false));
+
+            // Priority order toggle
+            document.getElementById('customOrderToggle').addEventListener('change', () => optimizeLeave(false));
 
             document.getElementById('balanceMode').addEventListener('change', handleBalanceModeChange);
-            document.getElementById('todayDisplayDate').innerText = formatAUDate(TODAY);
+
+            // Set dynamic today date labels
+            const todayLabel = formatAUDate(TODAY);
+            const todayDisplay = document.getElementById('todayDisplayDate');
+            if (todayDisplay) todayDisplay.innerText = todayLabel;
+            const autoLbl = document.getElementById('autoTodayLabel');
+            if (autoLbl) autoLbl.innerText = todayLabel;
+            const manLbl = document.getElementById('manualTodayLabel');
+            if (manLbl) manLbl.innerText = todayLabel;
 
             handleBalanceModeChange();
         });
 
         // Set system theme
         function setTheme(themeName) {
-            document.body.className = `p-3 md:p-8 min-h-screen flex flex-col justify-between theme-${themeName}`;
-            localStorage.setItem('chronos-theme', themeName);
+            document.body.className = `min-h-screen flex flex-col theme-${themeName}`;
+            localStorage.setItem('wallaby-theme', themeName);
         }
 
-        // Handle floating top-arrow visibility on scroll
+        // Handle back-to-top visibility
         function handleScroll() {
             const btn = document.getElementById('backToTopBtn');
-            if (window.scrollY > 400) {
-                btn.className = btn.className.replace('translate-y-16 opacity-0', 'translate-y-0 opacity-100');
+            if (!btn) return;
+            if (window.scrollY > 300) {
+                btn.classList.add('visible');
             } else {
-                btn.className = btn.className.replace('translate-y-0 opacity-100', 'translate-y-16 opacity-0');
+                btn.classList.remove('visible');
             }
         }
 
@@ -860,9 +1241,10 @@
             return `${year}-${month}-${day}`;
         }
 
-        // Format Date to standard Australian DD/MM/YYYY Format
+        // Format Date to standard Australian DD/MM/YYYY — always AEST display
         function formatAUDate(dateObj) {
             if (!dateObj || isNaN(dateObj.getTime())) return "--/--/----";
+            // Use local date components (already normalised to AEST via getTodayAEST / parseLocalDate)
             const day = String(dateObj.getDate()).padStart(2, '0');
             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
             const year = dateObj.getFullYear();
@@ -892,94 +1274,463 @@
             return Math.round((utc2 - utc1) / (1000 * 60 * 60 * 24));
         }
 
-        // Estimate typical flight baseline price and demand trends
-        function estimateFlightPrice(dest, startDate) {
-            if (!startDate || isNaN(startDate.getTime())) return { price: 0, note: "Invalid travel dates." };
-            
-            let basePrice = 500; // Baseline general cost
-            const d = dest.toLowerCase();
-            
-            if (d.includes("melbourne")) basePrice = 180;
-            else if (d.includes("tasmania")) basePrice = 220;
-            else if (d.includes("thailand")) basePrice = 750;
-            else if (d.includes("vietnam")) basePrice = 850;
-            else if (d.includes("canada")) basePrice = 1650;
-            else if (d.includes("nz") || d.includes("new zealand")) basePrice = 520;
-            else if (d.includes("canada / nz")) basePrice = 1350;
-
-            const month = startDate.getMonth();
-            let multiplier = 1.0;
-            let trendNote = "Standard low-shoulder season flight trends.";
-
-            // June, July are winter school holidays and northern hemisphere peak times.
-            if (month === 5 || month === 6) {
-                multiplier = 1.35;
-                trendNote = "Peak AU winter holiday travel window surge.";
-            } else if (month === 8 || month === 9) { // Sept/Oct Spring school holidays
-                multiplier = 1.15;
-                trendNote = "Moderate Spring break demand peak.";
-            } else if (month === 11) { // Dec Christmas Peak
-                multiplier = 1.55;
-                trendNote = "Extreme peak end-of-year Christmas rush demand.";
-            } else if (month === 1 || month === 2) { // Feb/Mar Low season
-                multiplier = 0.85;
-                trendNote = "Off-peak travel season pricing discounts active.";
-            }
-
-            return {
-                price: Math.round(basePrice * multiplier),
-                note: trendNote
-            };
+        // Build a Google Flights search URL from destination name and dates
+        // Note: Google Flights / Skyscanner have no public API — this opens real live search results
+        function buildFlightSearchUrl(dest, startDate, returnDate) {
+            if (!startDate || isNaN(startDate.getTime())) return null;
+            // Format: YYYY-MM-DD
+            const fmt = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            const depStr = fmt(startDate);
+            const retStr = returnDate && !isNaN(returnDate.getTime()) ? fmt(returnDate) : '';
+            // Google Flights deep-link: Sydney (SYD) to destination
+            const destEncoded = encodeURIComponent(dest);
+            let url = `https://www.google.com/travel/flights?q=Flights+from+Sydney+to+${destEncoded}+on+${depStr}`;
+            if (retStr) url += `+returning+${retStr}`;
+            return url;
         }
 
-        // Dynamic visa advisor lookup calculation with smart country fallbacks
+        // Detect AU season demand context for an honest trend label only (no fake price)
+        function getSeasonTrend(startDate) {
+            if (!startDate || isNaN(startDate.getTime())) return { label: 'Unknown', color: 'blue', note: 'Check live fares.' };
+            const month = startDate.getMonth();
+            if (month === 5 || month === 6) return { label: 'Peak', color: 'rose', note: 'AU winter school holidays — fares typically surge 25–40% above baseline.' };
+            if (month === 8 || month === 9) return { label: 'Busy', color: 'amber', note: 'Spring school holidays — moderate demand increase expected.' };
+            if (month === 11 || month === 0) return { label: 'Peak', color: 'rose', note: 'Christmas & New Year rush — historically highest fares of the year.' };
+            if (month === 1 || month === 2) return { label: 'Low', color: 'emerald', note: 'Off-peak shoulder season — typically best time for discounted fares.' };
+            return { label: 'Moderate', color: 'blue', note: 'Standard mid-season demand. Book early for best availability.' };
+        }
+
+        // ─────────────────────────────────────────────────────────────────────────
+        // GLOBAL VISA ENGINE v2 — fuzzy-match any typed destination worldwide
+        // Passport tiers from Henley Passport Index 2025. Always verify with
+        // official embassy/immigration sources before booking.
+        // ─────────────────────────────────────────────────────────────────────────
+        const passportTiers = {
+            S: ["AU","NZ","JP","SG","DE","FR","IT","ES","FI","SE","DK","NO","LU","NL","AT","BE","PT","IE","CH","US","GB","CA","KR"],
+            A: ["HK","CZ","PL","HU","LT","LV","EE","SK","SI","MT","CY","GR","RO","HR","BG","IS","LI","MC","SM","VA","MY","BR","AR","CL","UY","MX","PA","CR","TT","BB","BS","AG","KN","LC","VC","GD","DM","MU","SC"],
+            B: ["UA","RS","ME","MK","AL","BA","GE","AM","AZ","KZ","TR","IL","AE","QA","KW","BH","OM","CN","TW","TH","ID","VN","PH","IN","LK","MV","FJ","PW","WS","TO","VU","SB","PG","KI"],
+            C: ["NG","GH","KE","EG","MA","TN","DZ","ZA","ET","TZ","UG","RW","MZ","ZM","ZW","CM","CI","SN","ML","BF","NE","TD","GW","GN","SL","LR","GA","CG","CD","AO","NA","BW","LS","SZ","MW","MG","MR","SO","DJ","ER","SD","SS","CF","BI","KM","ST","CV","GM","GQ","TG","BJ","KH","LA","MM","NP","BD","PK","LB","IQ","YE","LY"],
+            D: ["IR","KP","RU","BY","CU","VE","SY","AF"]
+        };
+        function getPassportTier(code) {
+            if (passportTiers.S.includes(code)) return 'S';
+            if (passportTiers.A.includes(code)) return 'A';
+            if (passportTiers.B.includes(code)) return 'B';
+            if (passportTiers.C.includes(code)) return 'C';
+            return 'D';
+        }
+
         function getVisaRuleForPassport(passportCode, destinationKey) {
-            // Check direct mapping override first
-            if (visaRules[passportCode] && visaRules[passportCode][destinationKey]) {
-                return visaRules[passportCode][destinationKey];
+            const tier = getPassportTier(passportCode);
+            const dest = destinationKey.toLowerCase().trim();
+
+            // AU Domestic
+            const auDomestic = ["melbourne","sydney","brisbane","perth","adelaide","darwin","hobart","canberra","tasmania","gold coast","cairns","alice springs","broome","byron bay","port douglas","whitsundays","great barrier reef","uluru","australia","queensland","victoria","nsw","new south wales","western australia","south australia","northern territory"];
+            if (auDomestic.some(d => dest.includes(d))) {
+                return passportCode === 'AU'
+                    ? { needVisa: false, type: "Domestic Travel", processingDays: 0, notes: "No visa or passport required for domestic Australian travel." }
+                    : { needVisa: false, type: "Work/Residency Visa", processingDays: 0, notes: "Domestic travel within Australia. Your AU work/residency visa covers this." };
             }
-            
-            // Domestic flights
-            const domesticDestinations = ["Melbourne", "Tasmania"];
-            if (domesticDestinations.includes(destinationKey)) {
-                return { 
-                    needVisa: false, 
-                    type: "Domestic Resident status", 
-                    processingDays: 0, 
-                    notes: "No visa needed for domestic flights (assumes active AU work/resident visa)." 
-                };
+            // Japan
+            if (dest.includes("japan") || dest.includes("tokyo") || dest.includes("osaka") || dest.includes("kyoto") || dest.includes("hiroshima") || dest.includes("nara") || dest.includes("sapporo") || dest.includes("fukuoka")) {
+                if (passportCode === 'JP') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Japan is your home country." };
+                if (['S','A'].includes(tier)) return { needVisa: false, type: "Visa Exempt (90 days)", processingDays: 0, notes: "No prior visa needed. Entry stamp on arrival, up to 90 days for tourism." };
+                if (tier === 'B') return { needVisa: true, type: "Tourist Visa", processingDays: 7, applyWindowDays: 21, notes: "Apply through the Japan embassy. Single-entry tourist visa." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 14, applyWindowDays: 30, notes: "Apply through Japan embassy well in advance. Processing can be slow for some passports." };
             }
-            
-            // Smart visa classifications for other world passports
-            const strongPassportCodes = [
-                "AT", "BE", "DE", "DK", "ES", "FI", "FR", "IE", "IT", "JP", "LU", "NL", "NO", "PT", "SE", "CH", "TW", "KR", "SG", "MY", "CA", "US", "GB", "AU", "NZ"
-            ];
-            
-            const isStrongPassport = strongPassportCodes.includes(passportCode);
-            
-            const rulesMap = {
-                "Thailand": isStrongPassport 
-                    ? { needVisa: false, type: "Visa Exempt (60 Days)", processingDays: 0, notes: "Your passport qualifies for tourist visa exemption on arrival up to 60 days." }
-                    : { needVisa: true, type: "Tourist Visa", processingDays: 15, applyWindowDays: 30, notes: "Pre-arranged embassy tourist visa or E-Visa required for your passport." },
-                "Vietnam": { 
-                    needVisa: true, 
-                    type: "E-Visa", 
-                    processingDays: isStrongPassport ? 4 : 7, 
-                    applyWindowDays: isStrongPassport ? 14 : 21, 
-                    notes: `Requires online Vietnamese E-Visa prior to departure.` 
-                },
-                "Canada": isStrongPassport
-                    ? { needVisa: true, type: "eTA", processingDays: 2, applyWindowDays: 10, notes: "Requires Electronic Travel Authorization (eTA) registration online." }
-                    : { needVisa: true, type: "Visitor Visa", processingDays: 35, applyWindowDays: 60, notes: "Requires formal online Temporary Resident Visa (TRV) application." },
-                "NZ": isStrongPassport
-                    ? { needVisa: true, type: "NZeTA", processingDays: 1, applyWindowDays: 7, notes: "Requires New Zealand Electronic Travel Authority (NZeTA) online." }
-                    : { needVisa: true, type: "Visitor Visa", processingDays: 25, applyWindowDays: 45, notes: "Requires online New Zealand Visitor Visa application." },
-                "Canada / NZ": isStrongPassport
-                    ? { needVisa: true, type: "eTA & NZeTA Required", processingDays: 2, applyWindowDays: 10, notes: "Requires eTA for Canada and NZeTA for New Zealand." }
-                    : { needVisa: true, type: "Multiple Visas Required", processingDays: 35, applyWindowDays: 60, notes: "Pre-arranged tourist visas required for both Canada and New Zealand." }
+            // Indonesia / Bali
+            if (dest.includes("indonesia") || dest.includes("bali") || dest.includes("lombok") || dest.includes("java") || dest.includes("jakarta") || dest.includes("komodo") || dest.includes("flores") || dest.includes("raja ampat") || dest.includes("yogyakarta") || dest.includes("ubud") || dest.includes("seminyak")) {
+                if (passportCode === 'ID') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Indonesia is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Free (30 days)", processingDays: 0, notes: "Visa-free for up to 30 days. Extendable to 60 days on arrival at immigration." };
+                return { needVisa: true, type: "Visa on Arrival (USD $35)", processingDays: 0, applyWindowDays: 0, notes: "Visa on arrival available at major entry points. Approx. USD $35." };
+            }
+            // Thailand
+            if (dest.includes("thailand") || dest.includes("bangkok") || dest.includes("phuket") || dest.includes("chiang mai") || dest.includes("koh") || dest.includes("samui") || dest.includes("krabi") || dest.includes("hua hin") || dest.includes("pattaya") || dest.includes("ayutthaya")) {
+                if (passportCode === 'TH') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Thailand is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: false, type: "Visa Exempt (60 days)", processingDays: 0, notes: "Visa exemption up to 60 days for tourism (2024 policy). Stamp on arrival." };
+                if (tier === 'B') return { needVisa: false, type: "Visa Exempt (30 days)", processingDays: 0, notes: "Visa-free entry for 30 days on arrival." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 10, applyWindowDays: 21, notes: "Tourist visa (TR) required from Thai embassy prior to travel." };
+            }
+            // Vietnam
+            if (dest.includes("vietnam") || dest.includes("hanoi") || dest.includes("ho chi minh") || dest.includes("saigon") || dest.includes("danang") || dest.includes("hoi an") || dest.includes("ha long") || dest.includes("halong") || dest.includes("hue") || dest.includes("nha trang") || dest.includes("da lat") || dest.includes("phu quoc") || dest.includes("sapa")) {
+                if (passportCode === 'VN') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Vietnam is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: true, type: "E-Visa Required (USD $25)", processingDays: 4, applyWindowDays: 14, notes: "E-Visa required for all nationalities. Apply at evisa.xuatnhapcanh.gov.vn. Valid 90 days." };
+                return { needVisa: true, type: "E-Visa Required", processingDays: 7, applyWindowDays: 21, notes: "E-Visa required. Apply online well in advance. Longer processing for some passports." };
+            }
+            // New Zealand
+            if (dest.includes("new zealand") || /\bnz\b/.test(dest) || dest.includes("auckland") || dest.includes("queenstown") || dest.includes("wellington") || dest.includes("christchurch") || dest.includes("rotorua") || dest.includes("fiordland") || dest.includes("milford")) {
+                if (passportCode === 'AU') return { needVisa: false, type: "SCV on Arrival", processingDays: 0, notes: "Special Category Visa granted automatically on arrival to AU citizens." };
+                if (passportCode === 'NZ') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "New Zealand is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: true, type: "NZeTA (NZD $23)", processingDays: 1, applyWindowDays: 7, notes: "NZ Electronic Travel Authority required. Apply via the NZ Immigration app before travel." };
+                return { needVisa: true, type: "Visitor Visa", processingDays: 25, applyWindowDays: 45, notes: "Visitor visa required. Apply via immigration.govt.nz." };
+            }
+            // Canada
+            if (dest.includes("canada") || dest.includes("toronto") || dest.includes("vancouver") || dest.includes("montreal") || dest.includes("calgary") || dest.includes("banff") || dest.includes("ottawa") || dest.includes("jasper") || dest.includes("whistler") || dest.includes("niagara") || dest.includes("victoria")) {
+                if (passportCode === 'CA') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Canada is your home country." };
+                if (['S','A'].includes(tier)) return { needVisa: true, type: "eTA (CAD $7)", processingDays: 1, applyWindowDays: 7, notes: "Electronic Travel Authorization required. Apply at canada.ca/eta before booking flights." };
+                return { needVisa: true, type: "Visitor Visa (TRV)", processingDays: 35, applyWindowDays: 60, notes: "Temporary Resident Visa required. Apply via IRCC online. Long processing — apply early." };
+            }
+            // UK
+            if (dest.includes("united kingdom") || dest.includes("england") || dest.includes("scotland") || dest.includes("wales") || dest.includes("london") || dest.includes("edinburgh") || dest.includes("manchester") || dest.includes("liverpool") || dest.includes("oxford") || dest.includes("cambridge") || dest.includes("lake district") || /\buk\b/.test(dest)) {
+                if (passportCode === 'GB') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "UK is your home country." };
+                if (['S','A'].includes(tier)) return { needVisa: true, type: "UK ETA (£10)", processingDays: 3, applyWindowDays: 14, notes: "UK Electronic Travel Authorisation now required for visa-free nationals. Apply at gov.uk/uk-eta." };
+                return { needVisa: true, type: "Standard Visitor Visa", processingDays: 21, applyWindowDays: 45, notes: "Standard Visitor Visa required. Apply through UKVI online." };
+            }
+            // USA & Hawaii
+            if (dest.includes("united states") || dest.includes("usa") || dest.includes("new york") || dest.includes("los angeles") || dest.includes("hawaii") || dest.includes("las vegas") || dest.includes("miami") || dest.includes("chicago") || dest.includes("san francisco") || dest.includes("honolulu") || dest.includes("maui") || dest.includes("oahu") || dest.includes("nashville") || dest.includes("new orleans") || dest.includes("boston") || dest.includes("seattle") || dest.includes("washington dc") || dest.includes("yellowstone") || dest.includes("grand canyon") || dest.includes("yosemite")) {
+                if (passportCode === 'US') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "USA is your home country." };
+                if (['S'].includes(tier)) return { needVisa: true, type: "ESTA (USD $21)", processingDays: 1, applyWindowDays: 7, notes: "ESTA required. Apply at esta.cbp.dhs.gov — valid 2 years, multiple entries. Do NOT use third-party sites." };
+                if (['A'].includes(tier)) return { needVisa: true, type: "ESTA (USD $21)", processingDays: 2, applyWindowDays: 10, notes: "Apply for ESTA at esta.cbp.dhs.gov. Some passports may require extra screening." };
+                return { needVisa: true, type: "B-2 Visitor Visa", processingDays: 60, applyWindowDays: 120, notes: "Visitor visa with embassy interview required. Wait times can be very long — apply months ahead." };
+            }
+            // Schengen Europe
+            const schengenKeywords = ["france","germany","italy","spain","portugal","netherlands","belgium","austria","switzerland","greece","sweden","denmark","norway","finland","czechia","czech republic","poland","hungary","slovakia","slovenia","croatia","estonia","latvia","lithuania","luxembourg","malta","iceland","liechtenstein","paris","rome","barcelona","amsterdam","vienna","berlin","munich","zurich","geneva","prague","budapest","athens","lisbon","stockholm","copenhagen","oslo","helsinki","warsaw","krakow","dubrovnik","reykjavik","brussels","venice","florence","naples","seville","valencia","cologne","frankfurt","hamburg","milan","marseille","nice","lyon","bordeaux","santorini","mykonos","dubrovnik","split","tallinn","riga","vilnius","gdansk","sarajevo","podgorica","tirana","monaco","andorra","san marino"];
+            if (schengenKeywords.some(d => dest.includes(d))) {
+                if (['S','A'].includes(tier)) return { needVisa: false, type: "Schengen Exempt (90/180 days)", processingDays: 0, notes: "Visa-free for up to 90 days in any 180-day Schengen period. ETIAS (€7) launches late 2025 — check status before travel." };
+                if (tier === 'B') return { needVisa: true, type: "Schengen Visa", processingDays: 15, applyWindowDays: 30, notes: "Apply for Schengen Type C visa at the embassy of your main destination country. Travel insurance required." };
+                return { needVisa: true, type: "Schengen Visa", processingDays: 21, applyWindowDays: 45, notes: "Schengen visa required well in advance. Financial proof and travel insurance required." };
+            }
+            // India
+            if (dest.includes("india") || dest.includes("delhi") || dest.includes("mumbai") || dest.includes("goa") || dest.includes("kerala") || dest.includes("rajasthan") || dest.includes("agra") || dest.includes("jaipur") || dest.includes("bangalore") || dest.includes("chennai") || dest.includes("kolkata") || dest.includes("varanasi") || dest.includes("darjeeling") || dest.includes("ladakh") || dest.includes("andaman")) {
+                if (passportCode === 'IN') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "India is your home country." };
+                if (['S','A'].includes(tier)) return { needVisa: true, type: "e-Visa (USD $10–80)", processingDays: 3, applyWindowDays: 14, notes: "e-Tourist Visa available at indianvisaonline.gov.in. Do NOT use third-party sites." };
+                return { needVisa: true, type: "e-Visa", processingDays: 7, applyWindowDays: 21, notes: "e-Tourist Visa required. Processing 3-7 business days at indianvisaonline.gov.in." };
+            }
+            // Singapore
+            if (dest.includes("singapore")) {
+                if (passportCode === 'SG') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Singapore is your home country." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (30–90 days)", processingDays: 0, notes: "Most passport holders enter visa-free. Duration 30–90 days by nationality." };
+                return { needVisa: true, type: "Visit Pass", processingDays: 7, applyWindowDays: 21, notes: "Prior approval needed for some nationalities. Check ICA Singapore before travel." };
+            }
+            // Malaysia
+            if (dest.includes("malaysia") || dest.includes("kuala lumpur") || /\bkl\b/.test(dest) || dest.includes("penang") || dest.includes("langkawi") || dest.includes("borneo") || dest.includes("sabah") || dest.includes("sarawak") || dest.includes("kota kinabalu") || dest.includes("tioman")) {
+                if (passportCode === 'MY') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Malaysia is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (30–90 days)", processingDays: 0, notes: "Most nationalities enter visa-free. Duration varies by passport." };
+                return { needVisa: true, type: "eNTRI / Visa", processingDays: 5, applyWindowDays: 14, notes: "Some nationalities use eNTRI (RM30). Others require a visa — check MYtravelPass." };
+            }
+            // China
+            if (dest.includes("china") || dest.includes("beijing") || dest.includes("shanghai") || dest.includes("guangzhou") || dest.includes("shenzhen") || dest.includes("chengdu") || dest.includes("xi'an") || dest.includes("guilin") || dest.includes("zhangjiajie") || dest.includes("yangtze")) {
+                if (passportCode === 'CN') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "China is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: false, type: "Visa Exempt (15–30 days)", processingDays: 0, notes: "China's unilateral visa-free policy (2024–2025) covers select countries for 15–30 days. Verify at MOFA China before booking." };
+                return { needVisa: true, type: "Tourist Visa (L)", processingDays: 10, applyWindowDays: 28, notes: "Tourist (L) visa required. Apply through Chinese embassy/consulate or authorised agency." };
+            }
+            // Hong Kong
+            if (dest.includes("hong kong") || /\bhk\b/.test(dest)) {
+                if (passportCode === 'HK') return { needVisa: false, type: "Resident", processingDays: 0, notes: "Hong Kong is your home territory — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (7–90 days)", processingDays: 0, notes: "Hong Kong operates separately from mainland China. Most passport holders enter visa-free for 7–90 days." };
+                return { needVisa: true, type: "HKSAR Entry Permit", processingDays: 7, applyWindowDays: 21, notes: "Entry permit required — apply via ImmD Hong Kong." };
+            }
+            // South Korea
+            if (dest.includes("south korea") || dest.includes("korea") || dest.includes("seoul") || dest.includes("busan") || dest.includes("jeju") || dest.includes("gyeongju") || dest.includes("incheon")) {
+                if (passportCode === 'KR') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "South Korea is your home country." };
+                if (['S','A'].includes(tier)) return { needVisa: false, type: "Visa Exempt (90 days)", processingDays: 0, notes: "Visa-free entry for up to 90 days. K-ETA suspended until end 2025 — verify before travel." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 7, applyWindowDays: 21, notes: "Tourist visa required. Apply at Korean embassy or Visa Application Centre." };
+            }
+            // Philippines
+            if (dest.includes("philippines") || dest.includes("manila") || dest.includes("palawan") || dest.includes("cebu") || dest.includes("boracay") || dest.includes("davao") || dest.includes("siargao") || dest.includes("el nido") || dest.includes("coron") || dest.includes("dumaguete")) {
+                if (passportCode === 'PH') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Philippines is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (30 days)", processingDays: 0, notes: "30-day visa-free entry, extendable to 59 days at the Bureau of Immigration." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 7, applyWindowDays: 21, notes: "Visa required prior to arrival. Apply at Philippine embassy." };
+            }
+            // Maldives
+            if (dest.includes("maldives") || dest.includes("malé") || dest.includes("male ") || dest.includes("atoll")) {
+                if (passportCode === 'MV') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Maldives is your home country — no visa required." };
+                return { needVisa: false, type: "Visa on Arrival (30 days)", processingDays: 0, notes: "All nationalities receive free 30-day visa on arrival. No pre-approval needed — one of the world's most open borders." };
+            }
+            // Sri Lanka
+            if (dest.includes("sri lanka") || dest.includes("colombo") || dest.includes("kandy") || dest.includes("galle") || dest.includes("sigiriya") || dest.includes("ella") || dest.includes("trincomalee")) {
+                if (passportCode === 'LK') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Sri Lanka is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: true, type: "ETA (USD $20)", processingDays: 1, applyWindowDays: 7, notes: "Electronic Travel Authorisation required at eta.gov.lk before departure." };
+                return { needVisa: true, type: "ETA / Visa", processingDays: 5, applyWindowDays: 14, notes: "ETA required. Some nationalities need full visa — check eta.gov.lk or Sri Lanka embassy." };
+            }
+            // Nepal
+            if (dest.includes("nepal") || dest.includes("kathmandu") || dest.includes("pokhara") || dest.includes("everest") || dest.includes("annapurna") || dest.includes("chitwan") || dest.includes("lumbini")) {
+                if (passportCode === 'NP') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Nepal is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: true, type: "Visa on Arrival / e-Visa", processingDays: 0, applyWindowDays: 0, notes: "15/30/90-day tourist visa on arrival (USD $30/50) or online at online.nepalimmigration.gov.np." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 5, applyWindowDays: 14, notes: "Tourist visa required. Apply on arrival or via the Nepal immigration portal." };
+            }
+            // Dubai / UAE
+            if (dest.includes("dubai") || dest.includes("abu dhabi") || dest.includes("uae") || dest.includes("united arab emirates") || dest.includes("sharjah") || dest.includes("ras al khaimah") || dest.includes("fujairah")) {
+                if (passportCode === 'AE') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "UAE is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: false, type: "Visa on Arrival (30 days)", processingDays: 0, notes: "Free 30-day visa issued on arrival. Extendable once for 30 more days." };
+                if (tier === 'B') return { needVisa: true, type: "e-Visa", processingDays: 5, applyWindowDays: 14, notes: "Apply for UAE e-Visa through ICP portal or via airline/travel agent." };
+                return { needVisa: true, type: "Pre-Arranged Visa", processingDays: 10, applyWindowDays: 21, notes: "Visa must be pre-arranged through UAE embassy or a local sponsor." };
+            }
+            // Türkiye
+            if (dest.includes("turkey") || dest.includes("türkiye") || dest.includes("istanbul") || dest.includes("cappadocia") || dest.includes("antalya") || dest.includes("bodrum") || dest.includes("ephesus") || dest.includes("pamukkale") || dest.includes("izmir")) {
+                if (passportCode === 'TR') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Türkiye is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: true, type: "e-Visa (USD $30–60)", processingDays: 1, applyWindowDays: 7, notes: "e-Visa required. Apply at evisa.gov.tr — instant approval for most Western passports." };
+                return { needVisa: true, type: "e-Visa / Sticker Visa", processingDays: 5, applyWindowDays: 14, notes: "e-Visa or sticker visa required. Check evisa.gov.tr for eligibility." };
+            }
+            // Morocco
+            if (dest.includes("morocco") || dest.includes("marrakech") || dest.includes("casablanca") || dest.includes("fes") || dest.includes("rabat") || dest.includes("chefchaouen") || dest.includes("sahara") || dest.includes("essaouira") || dest.includes("agadir")) {
+                if (passportCode === 'MA') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Morocco is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (90 days)", processingDays: 0, notes: "Visa-free entry for up to 90 days for most passport holders." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 10, applyWindowDays: 21, notes: "Visa required. Apply at Moroccan embassy." };
+            }
+            // Egypt
+            if (dest.includes("egypt") || dest.includes("cairo") || dest.includes("luxor") || dest.includes("aswan") || dest.includes("hurghada") || dest.includes("sharm") || dest.includes("sinai") || dest.includes("giza") || dest.includes("abu simbel") || dest.includes("dahab")) {
+                if (passportCode === 'EG') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Egypt is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: true, type: "e-Visa / Visa on Arrival (USD $25)", processingDays: 1, applyWindowDays: 7, notes: "e-Visa at visa2egypt.gov.eg or visa on arrival at airports. USD $25 fee." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 10, applyWindowDays: 21, notes: "Tourist visa required. Apply at Egyptian embassy or e-Visa portal if eligible." };
+            }
+            // South Africa
+            if (dest.includes("south africa") || dest.includes("cape town") || dest.includes("johannesburg") || dest.includes("kruger") || dest.includes("durban") || dest.includes("garden route") || dest.includes("winelands") || dest.includes("soweto")) {
+                if (passportCode === 'ZA') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "South Africa is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (30–90 days)", processingDays: 0, notes: "Most Western passport holders enter visa-free. Duration varies by nationality." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 14, applyWindowDays: 30, notes: "Visa required. Apply through South African embassy or VFS Global." };
+            }
+            // Kenya
+            if (dest.includes("kenya") || dest.includes("nairobi") || dest.includes("masai mara") || dest.includes("mombasa") || dest.includes("amboseli") || dest.includes("samburu") || dest.includes("diani")) {
+                if (passportCode === 'KE') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Kenya is your home country — no visa required." };
+                return { needVisa: true, type: "ETA (USD $30)", processingDays: 3, applyWindowDays: 14, notes: "Kenya mandatory ETA since Jan 2024. Apply at etakenya.go.ke. Physical visa on arrival no longer offered." };
+            }
+            // Tanzania / Zanzibar
+            if (dest.includes("tanzania") || dest.includes("zanzibar") || dest.includes("serengeti") || dest.includes("kilimanjaro") || dest.includes("dar es salaam") || dest.includes("ngorongoro") || dest.includes("stone town")) {
+                if (passportCode === 'TZ') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Tanzania is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: true, type: "Visa on Arrival / e-Visa (USD $50)", processingDays: 1, applyWindowDays: 7, notes: "Visa on arrival (USD $50) or online at eservices.immigration.go.tz." };
+                return { needVisa: true, type: "Visa", processingDays: 10, applyWindowDays: 21, notes: "Visa required. Apply on arrival or via Tanzanian embassy in advance." };
+            }
+            // Rwanda
+            if (dest.includes("rwanda") || dest.includes("kigali") || dest.includes("volcanoes national park")) {
+                if (passportCode === 'RW') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Rwanda is your home country — no visa required." };
+                return { needVisa: false, type: "Visa on Arrival / e-Visa (Free)", processingDays: 0, applyWindowDays: 0, notes: "Rwanda offers visa-free or visa-on-arrival to most nationalities. e-Visa available at irembo.gov.rw." };
+            }
+            // Ethiopia
+            if (dest.includes("ethiopia") || dest.includes("addis ababa") || dest.includes("lalibela") || dest.includes("simien mountains")) {
+                if (passportCode === 'ET') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Ethiopia is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: true, type: "e-Visa (USD $52)", processingDays: 3, applyWindowDays: 14, notes: "e-Visa required. Apply at evisa.ethiopia.gov.et." };
+                return { needVisa: true, type: "Visa", processingDays: 10, applyWindowDays: 21, notes: "Visa required. Apply at Ethiopian embassy or via e-Visa portal." };
+            }
+            // Peru
+            if (dest.includes("peru") || dest.includes("lima") || dest.includes("machu picchu") || dest.includes("cusco") || dest.includes("colca") || dest.includes("lake titicaca") || dest.includes("amazon")) {
+                if (passportCode === 'PE') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Peru is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (90–183 days)", processingDays: 0, notes: "Most passport holders enter visa-free for 90–183 days." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 10, applyWindowDays: 21, notes: "Visa required prior to arrival. Apply at Peruvian embassy." };
+            }
+            // Brazil
+            if (dest.includes("brazil") || dest.includes("rio") || dest.includes("são paulo") || dest.includes("sao paulo") || dest.includes("iguazu") || dest.includes("salvador") || dest.includes("florianopolis") || dest.includes("recife") || dest.includes("fortaleza") || dest.includes("manaus")) {
+                if (passportCode === 'BR') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Brazil is your home country — no visa required." };
+                if (passportCode === 'AU') return { needVisa: false, type: "Visa Exempt (90 days)", processingDays: 0, notes: "Australia added to Brazil's visa-free list in 2023. Up to 90 days for tourism." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (90 days)", processingDays: 0, notes: "Most Western passport holders enter visa-free for up to 90 days." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 14, applyWindowDays: 30, notes: "Visa required. Apply at Brazilian embassy or consulate." };
+            }
+            // Argentina
+            if (dest.includes("argentina") || dest.includes("buenos aires") || dest.includes("patagonia") || dest.includes("mendoza") || dest.includes("bariloche") || dest.includes("iguazu") || dest.includes("salta") || dest.includes("ushuaia")) {
+                if (passportCode === 'AR') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Argentina is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (90 days)", processingDays: 0, notes: "Visa-free entry for 90 days for most nationalities." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 14, applyWindowDays: 30, notes: "Tourist visa required. Apply at Argentine embassy." };
+            }
+            // Chile
+            if (dest.includes("chile") || dest.includes("santiago") || dest.includes("atacama") || dest.includes("torres del paine") || dest.includes("valparaiso") || dest.includes("easter island") || dest.includes("chiloe")) {
+                if (passportCode === 'CL') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Chile is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (90 days)", processingDays: 0, notes: "Visa-free entry for up to 90 days for most nationalities." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 14, applyWindowDays: 30, notes: "Tourist visa required. Apply at Chilean consulate." };
+            }
+            // Colombia
+            if (dest.includes("colombia") || dest.includes("bogota") || dest.includes("medellin") || dest.includes("cartagena") || dest.includes("coffee region") || dest.includes("cali")) {
+                if (passportCode === 'CO') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Colombia is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (90 days)", processingDays: 0, notes: "Visa-free entry for up to 90 days. Register via the Colombia Migración app upon arrival." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 14, applyWindowDays: 30, notes: "Tourist visa required. Apply at Colombian embassy." };
+            }
+            // Mexico
+            if (dest.includes("mexico") || dest.includes("cancun") || dest.includes("mexico city") || dest.includes("oaxaca") || dest.includes("tulum") || dest.includes("playa del carmen") || dest.includes("guadalajara") || dest.includes("cabo") || dest.includes("puerto vallarta") || dest.includes("san cristobal") || dest.includes("merida") || dest.includes("chichen itza")) {
+                if (passportCode === 'MX') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Mexico is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (180 days)", processingDays: 0, notes: "Visa-free for up to 180 days. Complete digital tourist card (FMM) at airport." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 10, applyWindowDays: 21, notes: "Tourist visa required. Apply at Mexican embassy." };
+            }
+            // Costa Rica
+            if (dest.includes("costa rica") || dest.includes("san jose") || dest.includes("arenal") || dest.includes("monteverde") || dest.includes("manuel antonio") || dest.includes("guanacaste")) {
+                if (passportCode === 'CR') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Costa Rica is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (90 days)", processingDays: 0, notes: "Visa-free entry up to 90 days. Return ticket and sufficient funds required on entry." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 10, applyWindowDays: 21, notes: "Tourist visa required. Apply at Costa Rican embassy." };
+            }
+            // Cuba
+            if (dest.includes("cuba") || dest.includes("havana") || dest.includes("trinidad") || dest.includes("varadero") || dest.includes("cienfuegos")) {
+                if (passportCode === 'CU') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Cuba is your home country — no visa required." };
+                return { needVisa: true, type: "Tourist Card + Visa", processingDays: 5, applyWindowDays: 14, notes: "Tourist Card (tarjeta del turista) required. Available from airlines or Cuban consulate. USD/CAD not accepted — bring Euros or local currency." };
+            }
+            // Fiji
+            if (dest.includes("fiji") || dest.includes("nadi") || dest.includes("suva") || dest.includes("yasawa") || dest.includes("mamanuca")) {
+                if (passportCode === 'FJ') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Fiji is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (4 months)", processingDays: 0, notes: "Visa-free entry for up to 4 months on a valid return ticket." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 7, applyWindowDays: 14, notes: "Tourist visa required. Apply at Fijian embassy." };
+            }
+            // PNG
+            if (dest.includes("papua new guinea") || /\bpng\b/.test(dest)) {
+                if (passportCode === 'PG') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Papua New Guinea is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: true, type: "Visa on Arrival (PGK 100)", processingDays: 0, applyWindowDays: 0, notes: "60-day tourist visa on arrival at Port Moresby or Tokua airports." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 14, applyWindowDays: 28, notes: "Visa required in advance. Apply through Papua New Guinea embassy." };
+            }
+            // Vanuatu
+            if (dest.includes("vanuatu") || dest.includes("port vila") || dest.includes("espiritu santo")) {
+                if (passportCode === 'VU') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Vanuatu is your home country — no visa required." };
+                return { needVisa: false, type: "Visa Exempt (30 days)", processingDays: 0, notes: "30-day visa-free entry for most nationalities." };
+            }
+            // Pacific Islands
+            if (dest.includes("samoa") || dest.includes("tonga") || dest.includes("apia") || dest.includes("nukualofa") || dest.includes("cook islands") || dest.includes("rarotonga") || dest.includes("niue") || dest.includes("tokelau")) {
+                return { needVisa: false, type: "Entry Permit on Arrival (30 days)", processingDays: 0, notes: "Free entry permit on arrival for most nationalities. Return ticket required." };
+            }
+            // Solomon Islands
+            if (dest.includes("solomon islands") || dest.includes("honiara") || dest.includes("guadalcanal")) {
+                if (['S','A'].includes(tier)) return { needVisa: false, type: "Visa on Arrival (30 days)", processingDays: 0, notes: "Visa on arrival for most Western passports. No fee." };
+                return { needVisa: true, type: "Visa", processingDays: 7, applyWindowDays: 14, notes: "Visa required. Apply at Solomon Islands High Commission." };
+            }
+            // Jordan
+            if (dest.includes("jordan") || dest.includes("amman") || dest.includes("petra") || dest.includes("wadi rum") || dest.includes("dead sea") || dest.includes("aqaba")) {
+                if (passportCode === 'JO') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Jordan is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: true, type: "Visa on Arrival (JOD 40)", processingDays: 0, applyWindowDays: 0, notes: "Visa on arrival at Queen Alia airport. Jordan Pass (includes entry + attractions) is better value." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 7, applyWindowDays: 14, notes: "Visa required. Apply at Jordanian embassy or on arrival (some restrictions apply)." };
+            }
+            // Israel
+            if (dest.includes("israel") || dest.includes("jerusalem") || dest.includes("tel aviv") || dest.includes("dead sea") || dest.includes("eilat") || dest.includes("galilee")) {
+                if (passportCode === 'IL') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Israel is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (90 days)", processingDays: 0, notes: "Visa-free for most Western passport holders. Note: Israeli stamps may cause issues at some neighbouring country borders." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 14, applyWindowDays: 30, notes: "Visa required. Apply at Israeli embassy." };
+            }
+            // Saudi Arabia
+            if (dest.includes("saudi arabia") || dest.includes("riyadh") || dest.includes("jeddah") || dest.includes("neom") || dest.includes("al-ula") || dest.includes("mecca") || dest.includes("medina")) {
+                if (passportCode === 'SA') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Saudi Arabia is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: true, type: "e-Visa (SAR 300)", processingDays: 1, applyWindowDays: 7, notes: "Tourist e-Visa available at visa.visitsaudi.com. Multiple entries, 90 days. Saudi Arabia opened to tourism in 2019." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 10, applyWindowDays: 21, notes: "Tourist visa required. Apply at Saudi embassy or via the e-Visa portal if eligible." };
+            }
+            // Georgia (country)
+            if (dest.includes("georgia") || dest.includes("tbilisi") || dest.includes("batumi") || dest.includes("kazbegi") || dest.includes("kutaisi")) {
+                if (passportCode === 'GE') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Georgia is your home country — no visa required." };
+                if (['S','A','B','C'].includes(tier)) return { needVisa: false, type: "Visa Exempt (365 days)", processingDays: 0, notes: "Georgia offers visa-free entry for up to 365 days for most nationalities — one of the world's most generous policies." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 5, applyWindowDays: 14, notes: "Visa required. Apply via e-Visa portal at evisa.gov.ge." };
+            }
+            // Armenia
+            if (dest.includes("armenia") || dest.includes("yerevan") || dest.includes("lake sevan") || dest.includes("garni") || dest.includes("geghard")) {
+                if (passportCode === 'AM') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Armenia is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: false, type: "Visa Exempt (180 days)", processingDays: 0, notes: "Most passport holders enter visa-free for up to 180 days." };
+                return { needVisa: true, type: "e-Visa (USD $6)", processingDays: 2, applyWindowDays: 7, notes: "e-Visa available at evisa.mfa.am. Very affordable." };
+            }
+            // Azerbaijan
+            if (dest.includes("azerbaijan") || dest.includes("baku") || dest.includes("gobustan") || dest.includes("sheki")) {
+                if (passportCode === 'AZ') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Azerbaijan is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: true, type: "e-Visa (USD $23)", processingDays: 3, applyWindowDays: 10, notes: "e-Visa required for most nationalities. Apply at evisa.gov.az." };
+                return { needVisa: true, type: "e-Visa / Visa", processingDays: 7, applyWindowDays: 21, notes: "Visa required. Apply at evisa.gov.az or Azerbaijani embassy." };
+            }
+            // Uzbekistan
+            if (dest.includes("uzbekistan") || dest.includes("tashkent") || dest.includes("samarkand") || dest.includes("bukhara") || dest.includes("khiva")) {
+                if (passportCode === 'UZ') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Uzbekistan is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: false, type: "Visa Exempt (30 days)", processingDays: 0, notes: "Uzbekistan offers visa-free entry for most Western passport holders for 30 days." };
+                return { needVisa: true, type: "e-Visa", processingDays: 3, applyWindowDays: 10, notes: "e-Visa required. Apply at e-visa.uz." };
+            }
+            // Kazakhstan
+            if (dest.includes("kazakhstan") || dest.includes("almaty") || dest.includes("astana") || dest.includes("nur-sultan")) {
+                if (passportCode === 'KZ') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Kazakhstan is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: false, type: "Visa Exempt (30 days)", processingDays: 0, notes: "30-day visa-free entry for most Western passport holders." };
+                return { needVisa: true, type: "e-Visa", processingDays: 5, applyWindowDays: 14, notes: "e-Visa required. Apply at vmp.gov.kz." };
+            }
+            // Myanmar / Burma
+            if (dest.includes("myanmar") || dest.includes("burma") || dest.includes("yangon") || dest.includes("bagan") || dest.includes("mandalay") || dest.includes("inle lake")) {
+                if (passportCode === 'MM') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Myanmar is your home country — no visa required." };
+                if (['S','A'].includes(tier)) return { needVisa: true, type: "e-Visa (USD $50)", processingDays: 5, applyWindowDays: 14, notes: "e-Visa required. Apply at evisa.moip.gov.mm. Note: Myanmar currently under military rule — check travel advisories before visiting." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 10, applyWindowDays: 21, notes: "Tourist visa required. Check current travel advisories as Myanmar is under military rule." };
+            }
+            // Cambodia
+            if (dest.includes("cambodia") || dest.includes("siem reap") || dest.includes("angkor") || dest.includes("phnom penh") || dest.includes("sihanoukville") || dest.includes("kampot")) {
+                if (passportCode === 'KH') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Cambodia is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: true, type: "e-Visa (USD $36)", processingDays: 3, applyWindowDays: 10, notes: "e-Visa or visa on arrival. Apply online at evisa.gov.kh to avoid airport queues." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 7, applyWindowDays: 14, notes: "Visa on arrival or e-Visa. Apply at evisa.gov.kh." };
+            }
+            // Laos
+            if (dest.includes("laos") || dest.includes("luang prabang") || dest.includes("vientiane") || dest.includes("vang vieng") || dest.includes("4000 islands")) {
+                if (passportCode === 'LA') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Laos is your home country — no visa required." };
+                if (['S','A','B'].includes(tier)) return { needVisa: true, type: "Visa on Arrival (USD $35)", processingDays: 0, applyWindowDays: 0, notes: "Visa on arrival at major entry points (USD $35) or e-Visa at laotravelpass.gov.la." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 7, applyWindowDays: 14, notes: "Visa on arrival or e-Visa required. Check Laos immigration for current rules." };
+            }
+            // Bhutan
+            if (dest.includes("bhutan") || dest.includes("thimphu") || dest.includes("paro") || dest.includes("punakha")) {
+                if (passportCode === 'BT') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Bhutan is your home country — no visa required." };
+                if (passportCode === 'IN') return { needVisa: false, type: "Permit Required (Free)", processingDays: 1, applyWindowDays: 7, notes: "Indian citizens can enter Bhutan with just a national ID. Permit required but no SDF fee applies." };
+                if (['S','A','B','C'].includes(tier)) return { needVisa: true, type: "Bhutan Visa + SDF (USD $100/night)", processingDays: 5, applyWindowDays: 21, notes: "All visitors must book through a licensed Bhutan tour operator. Sustainable Development Fee is USD $100/person/night." };
+                return { needVisa: true, type: "Bhutan Visa", processingDays: 7, applyWindowDays: 21, notes: "Visa required through licensed Bhutanese tour operator. USD $100/night Sustainable Development Fee applies." };
+            }
+            // Iran
+            if (dest.includes("iran") || dest.includes("tehran") || dest.includes("isfahan") || dest.includes("shiraz") || dest.includes("persepolis")) {
+                if (passportCode === 'IR') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Iran is your home country — no visa required." };
+                if (passportCode === 'US' || passportCode === 'GB' || passportCode === 'CA') return { needVisa: true, type: "Visa Required (Difficult)", processingDays: 30, applyWindowDays: 60, notes: "US, UK, and Canadian passport holders must be accompanied by a government-approved guide at all times. Very restricted access — check travel advisories." };
+                if (['S','A'].includes(tier)) return { needVisa: true, type: "Tourist Visa / VOA", processingDays: 5, applyWindowDays: 21, notes: "Visa on arrival available for some nationalities or apply in advance via Iranian embassy. Restrictions apply." };
+                return { needVisa: true, type: "Tourist Visa", processingDays: 14, applyWindowDays: 30, notes: "Tourist visa required from Iranian embassy. Check current sanctions and travel advisories." };
+            }
+            // Russia
+            if (dest.includes("russia") || dest.includes("moscow") || dest.includes("st. petersburg") || dest.includes("saint petersburg") || dest.includes("siberia") || dest.includes("lake baikal")) {
+                if (passportCode === 'RU') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Russia is your home country — no visa required." };
+                return { needVisa: true, type: "Tourist Visa (Complex)", processingDays: 21, applyWindowDays: 45, notes: "Russia requires tourist visa for most nationalities. Strongly check your government's travel advisory — Western nations currently advise against all travel to Russia due to the ongoing war in Ukraine." };
+            }
+            // Cuba (deduplicated)
+            if (dest.includes("cuba") || dest.includes("havana") || dest.includes("varadero") || dest.includes("trinidad")) {
+                if (passportCode === 'CU') return { needVisa: false, type: "Citizen", processingDays: 0, notes: "Cuba is your home country — no visa required." };
+                return { needVisa: true, type: "Tourist Card", processingDays: 3, applyWindowDays: 14, notes: "Tourist card (tarjeta del turista) required. Available from airlines or Cuban consulate. Bring Euros — USD transactions face surcharges." };
+            }
+
+            // ── Universal citizen safety-net ──────────────────────────────────
+            // If we get here, the destination wasn't matched above. But we can still
+            // check if the user is traveling to their own country via ISO code match.
+            // This catches edge cases like Samoa (WS), Tonga (TO), etc.
+
+            // ── Tier-based fallback for unrecognised destinations ─────────────
+            const tierFallbacks = {
+                S: { needVisa: false, type: "Likely Visa Exempt", processingDays: 0, notes: "Strong passport — you're likely visa-free or visa-on-arrival. Always verify current entry rules with the destination's official immigration website before booking." },
+                A: { needVisa: false, type: "Likely Visa Exempt / ETA", processingDays: 1, applyWindowDays: 7, notes: "Good passport coverage — check if an ETA or eVisa is needed. Verify at the destination's official immigration website." },
+                B: { needVisa: true, type: "eVisa Likely Required", processingDays: 7, applyWindowDays: 21, notes: "Mid-tier passport — an e-Visa or pre-arranged visa is likely required. Check the destination's official embassy or immigration website for exact requirements." },
+                C: { needVisa: true, type: "Visa Required", processingDays: 14, applyWindowDays: 30, notes: "Visa is likely required well in advance. Contact the destination's embassy in Australia for accurate, up-to-date requirements." },
+                D: { needVisa: true, type: "Visa Required (Complex)", processingDays: 21, applyWindowDays: 60, notes: "Visa processing may be lengthy or restricted. Contact the embassy directly — some destinations may not accept your passport or require additional documentation." }
             };
-            
-            return rulesMap[destinationKey] || { needVisa: false, type: "Exempt", processingDays: 0, notes: "Standard tourist guidelines apply." };
+            return tierFallbacks[tier] || tierFallbacks['C'];
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+        // FAIR WORK AU ACCRUAL ENGINE — employment-type aware
+        // Sources: Fair Work Act 2009 (Cth), NES entitlements
+        // ─────────────────────────────────────────────────────────────────────
+        // Annual leave entitlements under NES:
+        //   Full time:  4 weeks/yr  = 152h/yr  (38h × 4)
+        //   Part time:  4 weeks/yr pro-rata by hours
+        //   Casual:     NO paid annual or sick leave
+        //   Shift worker: 5 weeks/yr = 190h/yr (38h × 5) — if rostered 7 days/wk
+        // Personal/Carer's (sick) leave:
+        //   Full/Part-time: 10 days/yr = 76h/yr (7.6h × 10)
+        //   Casual: nil
+        //   Shift worker: same 10 days/yr
+
+        function getEmploymentConfig() {
+            const type = document.getElementById('employmentType')?.value || 'fulltime';
+            const hoursInput = parseFloat(document.getElementById('weeklyHours')?.value) || 38;
+            const hoursPerWeek = Math.max(1, Math.min(hoursInput, 76)); // cap at 2× standard
+
+            switch (type) {
+                case 'fulltime':
+                    return { type, hoursPerWeek: 38, annualWeeks: 4, sickDaysPerYear: 10, isCasual: false, label: 'Full Time', color: 'emerald', note: '4 weeks annual leave + 10 days personal/carer\'s leave per year. NES entitlements.' };
+                case 'parttime':
+                    return { type, hoursPerWeek, annualWeeks: 4, sickDaysPerYear: 10, isCasual: false, label: 'Part Time', color: 'blue', note: `4 weeks annual leave pro-rata (${hoursPerWeek}h/wk ÷ 38h). 10 days sick leave pro-rata. NES entitlements.` };
+                case 'casual':
+                    return { type, hoursPerWeek, annualWeeks: 0, sickDaysPerYear: 0, isCasual: true, label: 'Casual', color: 'amber', note: 'Casual workers receive a 25% loading in lieu of leave. No accrued annual or sick leave under NES. Leave balances will show as 0.' };
+                case 'shift':
+                    return { type, hoursPerWeek: 38, annualWeeks: 5, sickDaysPerYear: 10, isCasual: false, label: 'Shift Worker', color: 'purple', note: '5 weeks annual leave (if rostered across 7-day week) + 10 days personal leave. Fair Work Act s.87(3).' };
+                default:
+                    return { type: 'fulltime', hoursPerWeek: 38, annualWeeks: 4, sickDaysPerYear: 10, isCasual: false, label: 'Full Time', color: 'emerald', note: 'Standard full-time NES entitlements.' };
+            }
+        }
+
+        function updateEmploymentBadge() {
+            const cfg = getEmploymentConfig();
+            const badge = document.getElementById('empTypeBadge');
+            if (!badge) return;
+            const colors = { emerald: 'text-emerald-800 bg-emerald-50 border-emerald-200', blue: 'text-blue-800 bg-blue-50 border-blue-200', amber: 'text-amber-800 bg-amber-50 border-amber-200', purple: 'text-purple-800 bg-purple-50 border-purple-200' };
+            const c = colors[cfg.color] || colors.emerald;
+            badge.className = `mt-2 p-2.5 rounded-xl border text-[10px] leading-relaxed ${c}`;
+            badge.innerHTML = `<strong class="block uppercase tracking-wider font-bold mb-0.5">${cfg.label} — Fair Work Act (NES)</strong>${cfg.note}`;
+            // Show/hide weekly hours row
+            const hRow = document.getElementById('weeklyHoursRow');
+            if (hRow) hRow.style.display = cfg.type === 'parttime' ? 'block' : 'none';
+            // Auto-set hours for non-part-time
+            const hInput = document.getElementById('weeklyHours');
+            if (hInput && cfg.type === 'fulltime') hInput.value = 38;
+            if (hInput && cfg.type === 'shift') hInput.value = 38;
         }
 
         // Calculate pro-rata mathematical accruals between two dates
@@ -988,25 +1739,31 @@
                 return { annual: 0, sick: 0, ado: 0 };
             }
 
-            const hoursPerWeek = Math.min(parseFloat(document.getElementById('weeklyHours').value) || 38, 38);
-            const adoRatePerMonth = parseFloat(document.getElementById('adoRate').value) || 0;
+            const cfg = getEmploymentConfig();
+            const adoRatePerMonth = parseFloat(document.getElementById('adoRate')?.value) || 0;
+
+            // Casual workers have zero entitlement
+            if (cfg.isCasual) return { annual: 0, sick: 0, ado: 0 };
 
             const diffDays = getLocalDaysDiff(d1, d2);
             const weeksWorked = diffDays / 7;
 
-            // Accurate pro-rata continuous hours accruals (4 weeks annual / 2 weeks sick pro-rata)
-            const annualHours = (hoursPerWeek / 38) * 152 * (weeksWorked / 52);
-            const sickHours = (hoursPerWeek / 38) * 76 * (weeksWorked / 52);
+            // Annual: (annualWeeks × hoursPerWeek) pro-rata over year
+            const annualHoursPerYear = cfg.annualWeeks * cfg.hoursPerWeek;
+            const annualHours = annualHoursPerYear * (weeksWorked / 52);
+            // Standard hours per day = hoursPerWeek / 5 for part-time, 7.6 for FT
+            const hoursPerDay = cfg.type === 'parttime' ? (cfg.hoursPerWeek / 5) : 7.6;
+            const annualDays = Math.max(0, annualHours / hoursPerDay);
 
-            const annualDays = Math.max(0, annualHours / 7.6);
-            const sickDays = Math.max(0, sickHours / 7.6);
+            // Sick: 10 days/yr pro-rata, using same hours-per-day base
+            const sickHoursPerYear = cfg.sickDaysPerYear * hoursPerDay;
+            const sickHours = sickHoursPerYear * (weeksWorked / 52);
+            const sickDays = Math.max(0, sickHours / hoursPerDay);
+
+            // ADO is industry-specific, kept as user input
             const adoDays = Math.max(0, (diffDays / 30.416) * adoRatePerMonth);
 
-            return {
-                annual: annualDays,
-                sick: sickDays,
-                ado: adoDays
-            };
+            return { annual: annualDays, sick: sickDays, ado: adoDays };
         }
 
         // Calculate pro-rata mathematical accruals up to a specific limit date
@@ -1070,25 +1827,38 @@
             document.getElementById('todayAdoBal').innerText = `${netAdo.toFixed(1)}d`;
         }
 
-        function addTripRow(dest = '', startStr = '2026-06-25', endStr = '2026-06-29', flex = 'exact') {
+        function addTripRow(destKey = '', startStr = '', endStr = '', flex = 'exact') {
+            // Default dates: next available weekday ~2 weeks from today
+            if (!startStr) {
+                const d = new Date(TODAY); d.setDate(d.getDate() + 14);
+                startStr = getLocalYYYYMMDD(d);
+            }
+            if (!endStr) {
+                const d = new Date(TODAY); d.setDate(d.getDate() + 21);
+                endStr = getLocalYYYYMMDD(d);
+            }
             const tbody = document.getElementById('tripsContainer');
             const row = document.createElement('tr');
             const tripId = 'trip-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
             row.setAttribute('data-trip-id', tripId);
             row.className = "group hover:bg-neutral-50/50 transition-colors duration-150";
 
+            const destOpts = buildDestOptionsHTML(destKey);
+
             row.innerHTML = `
                 <td class="py-4 pr-3">
-                    <input type="text" value="${dest}" placeholder="e.g. Vietnam" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:bg-[var(--bg-card)] transition-all font-medium text-[var(--text-main)]">
+                    <select onchange="optimizeLeave()" class="dest-select w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:bg-[var(--bg-card)] transition-all font-medium text-[var(--text-main)] cursor-pointer">
+                        ${destOpts}
+                    </select>
                 </td>
                 <td class="py-4 pr-3">
-                    <input type="date" value="${startStr}" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:bg-[var(--bg-card)] transition-all text-[var(--text-main)]">
+                    <input type="date" value="${startStr}" onchange="optimizeLeave()" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:bg-[var(--bg-card)] transition-all text-[var(--text-main)]">
                 </td>
                 <td class="py-4 pr-3">
-                    <input type="date" value="${endStr}" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:bg-[var(--bg-card)] transition-all text-[var(--text-main)]">
+                    <input type="date" value="${endStr}" onchange="optimizeLeave()" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:bg-[var(--bg-card)] transition-all text-[var(--text-main)]">
                 </td>
                 <td class="py-4 pr-3">
-                    <select class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:bg-[var(--bg-card)] transition-all text-[var(--text-main)]">
+                    <select onchange="optimizeLeave()" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:bg-[var(--bg-card)] transition-all text-[var(--text-main)]">
                         <option value="exact" ${flex === 'exact' ? 'selected' : ''}>Exact Dates</option>
                         <option value="flex-1" ${flex === 'flex-1' ? 'selected' : ''}>Flexible (+/- 1 Day)</option>
                         <option value="flex-2" ${flex === 'flex-2' ? 'selected' : ''}>Flexible (+/- 2 Days)</option>
@@ -1096,23 +1866,20 @@
                 </td>
                 <td class="py-4 text-right">
                     <div class="flex items-center justify-end gap-1.5">
-                        <!-- Move Up Arrow -->
-                        <button onclick="moveRowUp(this)" class="text-neutral-400 hover:text-[var(--text-main)] hover:bg-[var(--bg-muted)] transition-all cursor-pointer p-1.5 rounded-lg" title="Move Occurence Up">
+                        <button onclick="moveRowUp(this)" class="text-neutral-400 hover:text-[var(--text-main)] hover:bg-[var(--bg-muted)] transition-all cursor-pointer p-1.5 rounded-lg" title="Move Up">
                             <i data-lucide="arrow-up" class="w-4 h-4"></i>
                         </button>
-                        <!-- Move Down Arrow -->
-                        <button onclick="moveRowDown(this)" class="text-neutral-400 hover:text-[var(--text-main)] hover:bg-[var(--bg-muted)] transition-all cursor-pointer p-1.5 rounded-lg" title="Move Occurence Down">
+                        <button onclick="moveRowDown(this)" class="text-neutral-400 hover:text-[var(--text-main)] hover:bg-[var(--bg-muted)] transition-all cursor-pointer p-1.5 rounded-lg" title="Move Down">
                             <i data-lucide="arrow-down" class="w-4 h-4"></i>
                         </button>
-                        <!-- Quick Delete Cross Option (X) -->
-                        <button onclick="deleteTripRow(this)" class="text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer p-1.5 rounded-lg" title="Delete Destination">
+                        <button onclick="deleteTripRow(this)" class="text-neutral-400 hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer p-1.5 rounded-lg" title="Delete">
                             <i data-lucide="x" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </td>
             `;
             tbody.appendChild(row);
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         // Custom Destination deletion with live engine update
@@ -1156,9 +1923,9 @@
         function adjustTripDays(tripId, delta) {
             const row = document.querySelector(`[data-trip-id="${tripId}"]`);
             if (!row) return;
-            const inputs = row.querySelectorAll('input');
-            const returnDateInput = inputs[2]; // Return date is index 2
-            if (!returnDateInput.value) return;
+            const dateInputs = row.querySelectorAll('input[type="date"]');
+            const returnDateInput = dateInputs[1]; // index 1 = return date
+            if (!returnDateInput || !returnDateInput.value) return;
 
             const currentDate = parseLocalDate(returnDateInput.value);
             if (isNaN(currentDate.getTime())) return;
@@ -1168,7 +1935,7 @@
             optimizeLeave();
         }
 
-        function optimizeLeave() {
+        function optimizeLeave(doScroll = true) {
             const rows = document.querySelectorAll('#tripsContainer tr');
             if (rows.length === 0) {
                 document.getElementById('resultsCard').classList.add('hidden');
@@ -1191,18 +1958,26 @@
             let rawTrips = [];
             rows.forEach(row => {
                 const tripId = row.getAttribute('data-trip-id');
-                const inputs = row.querySelectorAll('input, select');
-                const dest = inputs[0].value || 'Vacation';
-                const startStr = inputs[1].value;
-                const endStr = inputs[2].value;
-                const flex = inputs[3].value;
+                const selects = row.querySelectorAll('select');
+                const dateInputs = row.querySelectorAll('input[type="date"]');
+                // selects[0] = destination, selects[1] = flex
+                const destKey = selects[0] ? selects[0].value : '';
+                const flex = selects[1] ? selects[1].value : 'exact';
+                const startStr = dateInputs[0] ? dateInputs[0].value : '';
+                const endStr   = dateInputs[1] ? dateInputs[1].value : '';
+
+                // Resolve human-readable display label from DESTINATIONS list
+                const destEntry = DESTINATIONS.find(d => d.key === destKey);
+                const destLabel = destEntry ? destEntry.label : (destKey || 'Destination TBD');
+
+                // Skip rows with no destination selected or invalid dates
+                if (!destKey) return;
 
                 if (startStr && endStr) {
                     const start = parseLocalDate(startStr);
                     const end = parseLocalDate(endStr);
-                    // Only process if both dates are valid and start <= end
                     if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start <= end) {
-                        rawTrips.push({ id: tripId, dest, startStr, endStr, flex });
+                        rawTrips.push({ id: tripId, dest: destKey, destLabel, startStr, endStr, flex });
                     }
                 }
             });
@@ -1271,6 +2046,7 @@
                 return {
                     id: trip.id,
                     dest: trip.dest,
+                    destLabel: trip.destLabel,
                     origStart: baseStart,
                     origEnd: baseEnd,
                     startDate: bestStart,
@@ -1426,23 +2202,20 @@
                     }
 
                     calendarStripHtml += `
-                        <div class="flex-1 min-w-[36px] flex flex-col items-center justify-between p-1.5 rounded-lg ${bgClass} shadow-xs border border-white/10 group/day relative transition-all duration-200 transform hover:scale-105">
-                            <span class="text-[9px] uppercase tracking-tighter opacity-80">${dayLabel}</span>
-                            <span class="text-xs font-bold font-mono my-0.5">${dateLabel}</span>
-                            
-                            <!-- Day Hover Tooltip Detail -->
-                            <div class="absolute bottom-full mb-2 hidden group-hover/day:block bg-neutral-950 text-neutral-100 text-[10px] py-1.5 px-3 rounded-md font-sans whitespace-nowrap z-30 shadow-md border border-neutral-800">
-                                <span class="font-semibold block text-neutral-300 text-right text-[8px] mb-0.5">${formatAUDate(day)}</span>
-                                ${tooltipText}
-                            </div>
+                        <div class="day-cell ${bgClass}" title="${tooltipText} — ${formatAUDate(day)}">
+                            <span class="day-label">${dayLabel}</span>
+                            <span class="day-num">${dateLabel}</span>
                         </div>
                     `;
                 });
 
-                // --- FLIGHT PRICE CALCULATION BLOCK ---
-                const flightInfo = estimateFlightPrice(trip.dest, trip.startDate);
+                // --- FLIGHT SEARCH LINK + SEASON TREND ---
+                const flightUrl = buildFlightSearchUrl(trip.destLabel, trip.startDate, trip.endDate);
+                const trend = getSeasonTrend(trip.startDate);
+                const trendColorMap = { rose: 'rose', amber: 'amber', emerald: 'emerald', blue: 'blue' };
+                const tc = trendColorMap[trend.color] || 'blue';
 
-                // --- VISA ADVISORY CALCULATION BLOCK WITH SMART GLOBAL PASSPORT LOOKUP ---
+                // --- VISA ADVISORY — uses destKey for fuzzy matching ---
                 let visaDetailHtml = '';
                 const rule = getVisaRuleForPassport(selectedCitizenship, trip.dest);
                 
@@ -1450,32 +2223,33 @@
                     const visaDeadline = new Date(trip.startDate);
                     visaDeadline.setDate(trip.startDate.getDate() - (rule.applyWindowDays || 14));
                     
-                    let deadlineColorClass = "text-rose-600 bg-rose-50 border border-rose-100";
-                    // If deadline has already passed relative to TODAY (06/06/2026)
-                    if (visaDeadline < TODAY) {
-                        deadlineColorClass = "text-red-700 bg-red-100 border border-red-300 animate-pulse";
-                    }
+                    const isPast = visaDeadline < TODAY;
+                    const deadlineBg = isPast
+                        ? 'background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.25);color:#b91c1c'
+                        : 'background:rgba(245,158,11,0.07);border-color:rgba(245,158,11,0.2);color:#92400e';
 
                     visaDetailHtml = `
-                        <div class="p-3.5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs ${deadlineColorClass}">
-                            <div class="flex items-start gap-2.5">
-                                <i data-lucide="shield-alert" class="w-4.5 h-4.5 flex-shrink-0 mt-0.5"></i>
+                        <div style="${deadlineBg};border-width:1px;border-style:solid;border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:6px">
+                            <div style="display:flex;align-items:flex-start;gap:10px">
+                                <i data-lucide="shield-alert" style="width:15px;height:15px;flex-shrink:0;margin-top:1px"></i>
                                 <div>
-                                    <p class="font-bold uppercase tracking-wide">Visa Required (${rule.type})</p>
-                                    <p class="opacity-90 mt-0.5">${rule.notes} Tentative processing time: ${rule.processingDays} days.</p>
+                                    <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:2px">${rule.type}</p>
+                                    <p style="font-size:11px;opacity:0.85;line-height:1.4">${rule.notes}</p>
                                 </div>
-                            </div>
-                            <div class="md:text-right font-semibold whitespace-nowrap bg-white/40 px-3 py-1.5 rounded-lg border border-black/5">
-                                Apply Before: <span class="font-bold underline">${formatAUDate(visaDeadline)}</span>
+                                <div style="margin-left:auto;flex-shrink:0;text-align:right;font-size:11px;font-weight:700">
+                                    Apply by<br><span style="font-size:13px">${formatAUDate(visaDeadline)}</span>
+                                    ${isPast ? '<br><span style="font-size:10px;font-weight:700;color:#dc2626">⚠ OVERDUE</span>' : ''}
+                                </div>
                             </div>
                         </div>
                     `;
                 } else {
                     visaDetailHtml = `
-                        <div class="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 text-emerald-800 text-xs flex items-center gap-2.5">
-                            <i data-lucide="shield-check" class="w-4.5 h-4.5 text-emerald-600"></i>
+                        <div style="background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.18);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:10px;color:#065f46">
+                            <i data-lucide="shield-check" style="width:15px;height:15px;flex-shrink:0;color:#059669"></i>
                             <div>
-                                <strong class="uppercase font-bold tracking-wider text-[10px]">No Prior Pre-Travel Visa Required</strong> — ${rule.notes}
+                                <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:1px">No visa required</p>
+                                <p style="font-size:11px;opacity:0.8">${rule.notes}</p>
                             </div>
                         </div>
                     `;
@@ -1493,85 +2267,85 @@
                 }
 
                 itineraryResults.innerHTML += `
-                    <div class="p-5 border border-[var(--border-card)] rounded-2xl bg-[var(--bg-card)] hover:shadow-xs transition-all duration-300 space-y-4">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-100 pb-3">
-                            <div class="flex-1">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <h4 class="text-base font-semibold text-[var(--text-main)]">${trip.dest}</h4>
-                                    ${trip.isBuffered ? `<span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md flex items-center gap-1"><i data-lucide="shield" class="w-2.5 h-2.5"></i> Jetlag Buffer</span>` : ''}
+                    <div class="card p-0 overflow-hidden animate-fade-in">
+
+                        <!-- Card Header — destination + controls -->
+                        <div class="px-5 pt-5 pb-4 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-1">
+                                    <h4 class="text-lg font-bold text-[var(--text-main)] leading-tight">${trip.destLabel}</h4>
+                                    ${trip.isBuffered ? `<span style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:rgba(16,185,129,0.1);color:#059669;border:1px solid rgba(16,185,129,0.2)">+ Recovery day</span>` : ''}
                                     ${flexShiftBadge}
                                 </div>
-                                <p class="text-xs text-[var(--text-muted)] mt-1 font-medium">Vacation Window: <span class="font-semibold text-[var(--text-main)]">${displayWindow}</span></p>
+                                <p class="text-sm text-[var(--text-muted)]">${displayWindow} &nbsp;·&nbsp; <span class="font-semibold text-[var(--text-main)]">${trip.duration} days</span></p>
                             </div>
-                            
-                            <div class="flex items-center gap-2 self-start sm:self-center">
-                                <!-- Interactive Increase/Decrease Duration Pill Badge -->
-                                <div class="text-left sm:text-right flex items-center gap-1 bg-neutral-900 text-white p-1 rounded-xl shadow-sm">
-                                    <button onclick="adjustTripDays('${trip.id}', -1)" class="hover:bg-neutral-800 text-neutral-400 hover:text-white p-1 rounded-lg cursor-pointer transition-all animate-none" title="Decrease Trip Length (contracts return date)">
-                                        <i data-lucide="minus" class="w-3.5 h-3.5"></i>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <div class="flex items-center gap-1 bg-[var(--text-main)] text-[var(--bg-main)] rounded-xl p-1">
+                                    <button onclick="adjustTripDays('${trip.id}', -1)" class="p-1.5 rounded-lg hover:opacity-70 transition-opacity cursor-pointer" title="Shorten trip">
+                                        <i data-lucide="minus" class="w-3 h-3"></i>
                                     </button>
-                                    <span class="text-xs font-mono font-semibold px-2">${trip.duration} days total</span>
-                                    <button onclick="adjustTripDays('${trip.id}', 1)" class="hover:bg-neutral-800 text-neutral-400 hover:text-white p-1 rounded-lg cursor-pointer transition-all animate-none" title="Increase Trip Length (extends return date)">
-                                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                    <span class="text-xs font-mono font-bold px-1">${trip.duration}d</span>
+                                    <button onclick="adjustTripDays('${trip.id}', 1)" class="p-1.5 rounded-lg hover:opacity-70 transition-opacity cursor-pointer" title="Extend trip">
+                                        <i data-lucide="plus" class="w-3 h-3"></i>
                                     </button>
                                 </div>
-
-                                <!-- Cross close option directly on result card to remove vacation -->
-                                <button onclick="deleteTripById('${trip.id}')" class="text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer p-1.5 rounded-xl border border-neutral-200/60 dark:border-neutral-800" title="Remove Destination">
-                                    <i data-lucide="x" class="w-4.5 h-4.5"></i>
+                                <button onclick="deleteTripById('${trip.id}')" class="p-2 rounded-xl text-[var(--text-muted)] hover:text-rose-500 hover:bg-rose-50 border border-[var(--border-card)] transition-all cursor-pointer" title="Remove">
+                                    <i data-lucide="x" class="w-4 h-4"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <!-- Visa Advisory Notification Badge Panel -->
-                        ${visaDetailHtml}
+                        <!-- Divider -->
+                        <div class="border-t border-[var(--border-card)]"></div>
 
-                        <!-- Real-time accruals lookup dialogue -->
-                        <div class="bg-[var(--bg-muted)] p-3.5 rounded-xl border border-[var(--border-card)] space-y-2">
-                            <p class="text-[10px] uppercase tracking-wider font-bold text-[var(--text-muted)]">Accrued Balances Available at Departure (Calculated dynamically)</p>
-                            <div class="grid grid-cols-3 gap-2 font-mono text-xs">
-                                <div>Annual: <strong class="text-emerald-600">${(availableAnnual + allocatedAnnual).toFixed(1)}d</strong></div>
-                                <div>ADO: <strong class="text-teal-700">${(availableAdo + allocatedAdo).toFixed(1)}d</strong></div>
-                                <div>Sick/Carers: <strong class="text-purple-700">${(availableSick + allocatedSick).toFixed(1)}d</strong></div>
-                            </div>
+                        <!-- Visa Advisory -->
+                        <div class="px-5 py-3">
+                            ${visaDetailHtml}
                         </div>
 
-                        <!-- Visual Day-By-Day Matrix Strip -->
-                        <div class="space-y-1.5">
-                            <p class="text-[9px] uppercase tracking-wider font-bold text-[var(--text-muted)]">Day-by-Day Calendar Composition Matrix (Hover for details)</p>
-                            <div class="flex gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+                        <!-- Calendar Strip -->
+                        <div class="px-5 pb-4">
+                            <p class="section-label">Day-by-day breakdown — hover for details</p>
+                            <div class="flex gap-1 overflow-x-auto pb-1 custom-scrollbar">
                                 ${calendarStripHtml}
                             </div>
                         </div>
 
-                        <!-- Logistics & Budgetary Flight Trends Indicator -->
-                        <div class="p-3.5 bg-blue-50/30 border border-blue-100 rounded-xl flex items-center justify-between gap-3 text-xs text-blue-950">
-                            <div class="flex items-start gap-2.5">
-                                <i data-lucide="plane-takeoff" class="w-4.5 h-4.5 text-blue-600 flex-shrink-0 mt-0.5"></i>
-                                <div>
-                                    <span class="font-bold uppercase tracking-wider text-[9px] text-blue-500 block mb-0.5">Flight Trends Indicator</span>
-                                    <span>${flightInfo.note} Expect seasonal fluctuation.</span>
-                                </div>
+                        <!-- Stats row — 3 columns of key numbers -->
+                        <div class="border-t border-[var(--border-card)] grid grid-cols-3 divide-x divide-[var(--border-card)]">
+                            <div class="px-4 py-3">
+                                <p class="section-label">Annual Used</p>
+                                <p class="text-xl font-bold text-emerald-600">${allocatedAnnual.toFixed(1)}<span class="text-sm font-normal text-[var(--text-muted)]">d</span></p>
                             </div>
-                            <div class="font-mono font-bold text-sm text-blue-800 whitespace-nowrap bg-blue-50 px-2.5 py-1 rounded border border-blue-200">
-                                ~ $${flightInfo.price} AUD
+                            <div class="px-4 py-3">
+                                <p class="section-label">ADO Used</p>
+                                <p class="text-xl font-bold text-teal-600">${allocatedAdo.toFixed(1)}<span class="text-sm font-normal text-[var(--text-muted)]">d</span></p>
+                            </div>
+                            <div class="px-4 py-3">
+                                <p class="section-label">Free Days</p>
+                                <p class="text-xl font-bold text-amber-600">${PHdays + WEdays}<span class="text-sm font-normal text-[var(--text-muted)]">d</span></p>
                             </div>
                         </div>
 
-                        <!-- Allocation Breakdown Pill Labels -->
-                        <div class="flex flex-wrap gap-2 pt-2 text-[11px]">
-                            <span class="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full font-medium">🌴 Public Holiday: ${PHdays}d</span>
-                            <span class="px-2.5 py-1 bg-neutral-100 text-neutral-600 border border-neutral-200 rounded-full font-medium">🌊 Weekend: ${WEdays}d</span>
-                            <span class="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-100 rounded-full font-medium">💼 Annual Used: ${allocatedAnnual.toFixed(1)}d</span>
-                            <span class="px-2.5 py-1 bg-teal-50 text-teal-800 border border-teal-100 rounded-full font-medium">⏳ ADO Contributed: ${allocatedAdo.toFixed(1)}d</span>
-                            <span class="px-2.5 py-1 bg-purple-50 text-purple-800 border border-purple-100 rounded-full font-medium">🩺 Sick Allocated: ${allocatedSick.toFixed(1)}d</span>
+                        <!-- Composition pills + flight row -->
+                        <div class="px-5 py-3 bg-[var(--bg-muted)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-[var(--border-card)]">
+                            <div class="flex flex-wrap gap-1.5">
+                                <span class="alloc-pill" style="background:rgba(245,158,11,0.08);color:#b45309;border-color:rgba(245,158,11,0.2)">🌴 ${PHdays}d holiday</span>
+                                <span class="alloc-pill" style="background:var(--bg-card);color:var(--text-muted);border-color:var(--border-card)">🌊 ${WEdays}d weekend</span>
+                                ${allocatedAnnual > 0 ? `<span class="alloc-pill" style="background:rgba(16,185,129,0.08);color:#047857;border-color:rgba(16,185,129,0.2)">💼 ${allocatedAnnual.toFixed(1)}d annual</span>` : ''}
+                                ${allocatedAdo > 0 ? `<span class="alloc-pill" style="background:rgba(20,184,166,0.08);color:#0f766e;border-color:rgba(20,184,166,0.2)">⏳ ${allocatedAdo.toFixed(1)}d ADO</span>` : ''}
+                                ${allocatedSick > 0 ? `<span class="alloc-pill" style="background:rgba(168,85,247,0.08);color:#7c3aed;border-color:rgba(168,85,247,0.2)">🩺 ${allocatedSick.toFixed(1)}d sick</span>` : ''}
+                                ${allocatedUnpaid > 0 ? `<span class="alloc-pill" style="background:rgba(239,68,68,0.1);color:#dc2626;border-color:rgba(239,68,68,0.25)">⚠️ ${allocatedUnpaid.toFixed(1)}d unpaid</span>` : ''}
+                            </div>
+                            ${flightUrl ? `
+                            <a href="${flightUrl}" target="_blank" rel="noopener noreferrer"
+                               class="flex-shrink-0 flex items-center gap-1.5 text-[var(--bg-accent)] hover:underline font-semibold text-xs whitespace-nowrap transition-all">
+                                <i data-lucide="plane" class="w-3.5 h-3.5"></i>
+                                Search flights <span class="opacity-60 font-normal">(${trend.label} season)</span>
+                                <i data-lucide="external-link" class="w-3 h-3 opacity-60"></i>
+                            </a>` : ''}
                         </div>
 
-                        ${allocatedUnpaid > 0 ? `
-                        <div class="flex items-center gap-2 text-rose-700 bg-rose-50/50 border border-rose-100 p-2.5 rounded-xl text-xs font-medium">
-                            <i data-lucide="info" class="w-4 h-4 flex-shrink-0"></i>
-                            <span>Accrual Gap: Requires <strong class="underline">${allocatedUnpaid.toFixed(1)} days</strong> of Unpaid Leave.</span>
-                        </div>` : ''}
                     </div>
                 `;
 
@@ -1589,10 +2363,12 @@
             document.getElementById('tallySick').innerText = `${finalTally.sick.toFixed(1)}d`;
             document.getElementById('tallyUnpaid').innerText = `${finalTally.unpaid.toFixed(1)}d`;
 
-            lucide.createIcons();
+            safeCreateIcons();
             
-            // Smoothly scroll down to optimized outputs
-            resultsCard.scrollIntoView({ behavior: 'smooth' });
+            // Only scroll on explicit button click, not on auto-recalculate
+            if (doScroll) {
+                resultsCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
     </script>
 </body>
