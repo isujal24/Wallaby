@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallaby // Premium Leave Orchestrator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-subtle': 'pulseSubtle 2s infinite ease-in-out',
+                        'fade-in': 'fadeIn 0.4s ease-out forwards',
+                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'float-subtle': 'floatSubtle 3s infinite ease-in-out',
+                    },
+                    keyframes: {
+                        pulseSubtle: {
+                            '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+                            '50%': { opacity: '.85', transform: 'scale(1.03)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        floatSubtle: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-3px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        /* Satisfying organic squash & stretch bounce keyframes for Wallaby logo */
+        @keyframes organic-hop {
+            0%, 100% { transform: translateY(0) scale(1, 1); }
+            20% { transform: translateY(2px) scale(1.1, 0.85); }     /* Pre-jump compression */
+            40% { transform: translateY(-16px) scale(0.88, 1.18); }  /* Upward stretch */
+            55% { transform: translateY(-18px) scale(0.95, 1.05); }  /* Apex float */
+            70% { transform: translateY(3px) scale(1.15, 0.82); }    /* Ground landing compression */
+            85% { transform: translateY(-1px) scale(0.98, 1.02); }   /* Minor rebound */
+        }
+        
+        .animate-custom-hop {
+            animation: organic-hop 0.75s cubic-bezier(0.28, 0.84, 0.42, 1) forwards;
+        }
+
+        /* Twinkling effect for vector sparkles */
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        .sparkle-slow { animation: twinkle 3s infinite ease-in-out; }
+        .sparkle-fast { animation: twinkle 2s infinite ease-in-out 0.5s; }
+
+        /* Premium CSS Variables Mapping Design Tokens dynamically across Themes */
+        body.theme-light {
+            --bg-main: #fafafa;
+            --text-main: #171717;
+            --bg-card: #ffffff;
+            --border-card: rgba(229, 229, 229, 0.8);
+            --bg-accent: #0a0a0a;
+            --text-accent: #ffffff;
+            --bg-accent-hover: #262626;
+            --bg-muted: #f4f4f5;
+            --text-muted: #71717a;
+            --bg-accent-soft: #f4f4f5;
+        }
+        body.theme-dark {
+            --bg-main: #0c0c0e;
+            --text-main: #fafafa;
+            --bg-card: #18181b;
+            --border-card: #27272a;
+            --bg-accent: #fafafa;
+            --text-accent: #18181b;
+            --bg-accent-hover: #e4e4e7;
+            --bg-muted: #202023;
+            --text-muted: #a1a1aa;
+            --bg-accent-soft: #27272a;
+        }
+        body.theme-forest {
+            --bg-main: #f0f4f1;
+            --text-main: #1a2f21;
+            --bg-card: #ffffff;
+            --border-card: #d2dfd4;
+            --bg-accent: #1e3f20;
+            --text-accent: #ffffff;
+            --bg-accent-hover: #152d17;
+            --bg-muted: #e4ece6;
+            --text-muted: #536c5b;
+            --bg-accent-soft: #edf3ee;
+        }
+        body.theme-ochre {
+            --bg-main: #faf6f0;
+            --text-main: #331f13;
+            --bg-card: #ffffff;
+            --border-card: #f0e2d3;
+            --bg-accent: #b25d1e;
+            --text-accent: #ffffff;
+            --bg-accent-hover: #8f4611;
+            --bg-muted: #f4eae1;
+            --text-muted: #7d6555;
+            --bg-accent-soft: #fbf2e9;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: background-color 0.4s ease, color 0.4s ease;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #d4d4d8;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a1a1aa;
+        }
+    </style>
+</head>
+<body class="p-3 md:p-8 min-h-screen flex flex-col justify-between theme-light">
+
+    <div class="max-w-6xl mx-auto w-full space-y-8 animate-fade-in">
+        <!-- Modern Minimalist Navigation -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-neutral-200/60 pb-6 gap-4">
+            <!-- Wallaby Identity & Logo -->
+            <div class="flex items-center gap-4 group cursor-pointer" onmouseenter="hopLogo()" onclick="hopLogo()">
+                <!-- Premium Custom Vector Wallaby Canvas Badge with Hop Animation trigger -->
+                <div id="wallabyLogoContainer" class="relative w-14 h-14 transition-all duration-300 ease-out flex items-center justify-center">
+                    <!-- Sunset Circle Background with Shadow -->
+                    <div class="absolute inset-0 bg-gradient-to-tr from-amber-500 via-orange-500 to-rose-500 rounded-2xl shadow-md rotate-3 group-hover:rotate-6 transition-transform duration-300"></div>
+                    
+                    <!-- Dynamic Glowing Outback Sun Behind Wallaby -->
+                    <div class="absolute w-6 h-6 bg-yellow-300/30 blur-md top-2 right-2 rounded-full"></div>
+                    
+                    <!-- Highly detailed premium Vector Wallaby hopping forward -->
+                    <svg class="relative w-9 h-9 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Head & Majestic Tall Alert Ears -->
+                        <path d="M12.5 14C11.5 7.5, 13.5 4, 15 6.5C16.5 9, 16 11, 17 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M15.5 11.5C15 7, 16.2 6.5, 17.5 8.5C18.8 10.5, 18 11.5, 18.5 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- sleek muzzle -->
+                        <path d="M17 13C19.5 11.8, 23 12, 24.5 14.2C26 16.4, 25.5 18, 23.2 18.5C20.5 19, 18.2 18.2, 16.5 16.2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- Delicate little arms/hands ready for adventure -->
+                        <path d="M19 22.5C21 24.5, 23.5 25, 22.5 26.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+                        <!-- Organic bouncy tail dynamic swipe line -->
+                        <path d="M14 20C11.5 22.5, 10.2 26.5, 10.5 30.5C11 34.5, 6 34.5, 4 34.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- Powerful bounding spring legs -->
+                        <path d="M14 30.5C16.5 30.5, 20.2 33.8, 19.2 34.8C18.2 35.8, 13.8 35.8, 12.2 34.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- Friendly eye -->
+                        <circle cx="20" cy="14.8" r="1" fill="currentColor"/>
+                    </svg>
+
+                    <!-- Magical Twinkling Vector Sparkles -->
+                    <svg class="absolute -top-1.5 -right-1.5 w-4 h-4 text-yellow-300 sparkle-fast" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4L12 0Z"/>
+                    </svg>
+                    <svg class="absolute -bottom-1 -left-1 w-3 h-3 text-white sparkle-slow" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4L12 0Z"/>
+                    </svg>
+                </div>
+                <div>
+                    <!-- Upgraded animated Typography -->
+                    <h1 class="text-3xl font-black tracking-widest text-[var(--text-main)] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-amber-500 group-hover:to-rose-500 transition-all duration-300 animate-float-subtle uppercase">
+                        Wallaby
+                    </h1>
+                    <!-- Refreshed welcoming slogan -->
+                    <p class="text-[11px] uppercase tracking-wider mt-1.5 font-bold text-[var(--text-muted)] max-w-sm sm:max-w-md">
+                        Maximise your leaves and enjoy your travels - stress free
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Global Configuration Hub Block -->
+            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                <!-- Theme Selector -->
+                <div class="flex items-center gap-2.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-xl shadow-xs transition-colors duration-300">
+                    <i data-lucide="palette" class="w-4 h-4 text-indigo-500"></i>
+                    <div class="text-left">
+                        <p class="text-[9px] text-[var(--text-muted)] font-medium uppercase tracking-wider">Interface Theme</p>
+                        <select id="themeSelector" class="text-xs font-semibold bg-transparent border-none p-0 focus:ring-0 cursor-pointer outline-none text-[var(--text-main)]">
+                            <option value="light">Classic Slate</option>
+                            <option value="dark">Noir Lux</option>
+                            <option value="forest">Emerald Forest</option>
+                            <option value="ochre">Ochre Sunset</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Citizenship Selector with Interactive Comfort Tooltip -->
+                <div class="flex items-center gap-2.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-xl shadow-xs transition-colors duration-300 relative group/citizenship">
+                    <i data-lucide="globe-2" class="w-4 h-4 text-emerald-600"></i>
+                    <div class="text-left">
+                        <div class="flex items-center gap-1">
+                            <p class="text-[9px] text-[var(--text-muted)] font-medium uppercase tracking-wider">Citizenship (Passport)</p>
+                            <i data-lucide="help-circle" class="w-3 h-3 text-[var(--text-muted)] cursor-help"></i>
+                        </div>
+                        <select id="citizenshipSelector" class="text-xs font-semibold bg-transparent border-none p-0 focus:ring-0 cursor-pointer outline-none max-w-[130px] truncate text-[var(--text-main)]">
+                            <!-- Populated programmatically in alphabetical order -->
+                        </select>
+                    </div>
+
+                    <!-- Explanatory Tooltip -->
+                    <div class="absolute top-full left-1/2 -translate-x-1/2 mt-2 hidden group-hover/citizenship:block bg-neutral-950 text-neutral-100 text-[10px] p-3 rounded-xl w-64 shadow-xl z-50 leading-relaxed border border-neutral-800">
+                        <p class="font-bold mb-1">Why do we ask for citizenship?</p>
+                        We calculate visa-free entries, e-visas, processing times, and suggest application deadlines for your passport. 
+                        <span class="text-emerald-400 block mt-1 font-medium">Since you work in Australia, we assume you already hold a valid AU work/residency visa.</span>
+                    </div>
+                </div>
+
+                <!-- Public Holiday State -->
+                <div class="flex items-center gap-2.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-xl shadow-xs transition-colors duration-300">
+                    <i data-lucide="map-pin" class="w-4 h-4 text-rose-500"></i>
+                    <div class="text-left">
+                        <p class="text-[9px] text-[var(--text-muted)] font-medium uppercase tracking-wider">AU Holiday State</p>
+                        <select id="stateSelector" class="text-xs font-semibold bg-transparent border-none p-0 focus:ring-0 cursor-pointer outline-none text-[var(--text-main)]">
+                            <option value="VIC" selected>Victoria (VIC)</option>
+                            <option value="NSW">New South Wales (NSW)</option>
+                            <option value="QLD">Queensland (QLD)</option>
+                            <option value="WA">Western Australia (WA)</option>
+                            <option value="SA">South Australia (SA)</option>
+                            <option value="TAS">Tasmania (TAS)</option>
+                            <option value="ACT">Australian Capital Territory (ACT)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Today Display -->
+                <div class="flex items-center gap-2.5 bg-[var(--bg-card)] border border-[var(--border-card)] px-3 py-1.5 rounded-xl shadow-xs transition-colors duration-300">
+                    <i data-lucide="calendar" class="w-4 h-4 text-blue-500"></i>
+                    <div class="text-left">
+                        <p class="text-[9px] text-[var(--text-muted)] font-medium uppercase tracking-wider">Today's Date (AU)</p>
+                        <p class="text-xs font-semibold" id="todayDisplayDate">06/06/2026</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Core Work Bench Split -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Grid: Settings & Inputs (Span 4) -->
+            <div class="lg:col-span-4 space-y-6">
+                <!-- Employment Configuration Card -->
+                <div class="bg-[var(--bg-card)] border border-[var(--border-card)] rounded-2xl p-6 shadow-xs hover:border-neutral-300 transition-all duration-300">
+                    <div class="flex items-center gap-2 mb-4 border-b border-neutral-100 pb-3">
+                        <i data-lucide="sliders" class="w-4 h-4 text-[var(--text-muted)]"></i>
+                        <h2 class="text-xs font-bold tracking-wider uppercase text-[var(--text-muted)]">Employment Parameters</h2>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-[var(--text-muted)]">Employment Start Date</label>
+                            <input type="date" id="startDate" value="2026-02-09" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-200 transition-all text-[var(--text-main)]">
+                            <span class="text-[10px] text-[var(--text-muted)] block mt-1">Select start date (parsed locally)</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-[var(--text-muted)]">Weekly Hours</label>
+                                <input type="number" id="weeklyHours" value="38" min="1" max="38" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-all text-[var(--text-main)]">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-[var(--text-muted)]">ADO Rate/Mo</label>
+                                <input type="number" id="adoRate" value="1" min="0" max="2" step="0.5" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-all text-[var(--text-main)]">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Balance & Exhaustion Ledger with Override System -->
+                <div class="bg-[var(--bg-card)] border border-[var(--border-card)] rounded-2xl p-6 shadow-xs hover:border-neutral-300 transition-all duration-300 space-y-4">
+                    <div class="flex items-center justify-between border-b border-neutral-100 pb-3">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="archive" class="w-4 h-4 text-[var(--text-muted)]"></i>
+                            <h2 class="text-xs font-bold tracking-wider uppercase text-[var(--text-muted)]">Leave Balances</h2>
+                        </div>
+                        <select id="balanceMode" class="text-[11px] font-semibold bg-[var(--bg-muted)] px-2 py-1 rounded-md border-none focus:ring-0 cursor-pointer outline-none">
+                            <option value="manual" selected>Manual Balance Today</option>
+                            <option value="auto">Auto Pro-rata</option>
+                        </select>
+                    </div>
+
+                    <!-- Auto Inputs Panel -->
+                    <div id="autoInputs" class="hidden space-y-3">
+                        <p class="text-xs leading-relaxed text-[var(--text-muted)]">Enter leave days you have already taken/exhausted between your Start Date and <strong class="text-neutral-800">06/06/2026</strong>:</p>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="bg-[var(--bg-muted)] p-2.5 rounded-xl border border-[var(--border-card)]">
+                                <label class="block text-[10px] font-semibold uppercase tracking-wider text-center mb-1 text-[var(--text-muted)]">Annual</label>
+                                <input type="number" id="exhaustedAnnual" value="0" min="0" class="w-full text-center bg-[var(--bg-card)] border border-[var(--border-card)] rounded-lg py-1 text-sm font-semibold focus:outline-none text-[var(--text-main)]">
+                            </div>
+                            <div class="bg-[var(--bg-muted)] p-2.5 rounded-xl border border-[var(--border-card)]">
+                                <label class="block text-[10px] font-semibold uppercase tracking-wider text-center mb-1 text-[var(--text-muted)]">Sick</label>
+                                <input type="number" id="exhaustedSick" value="3" min="0" class="w-full text-center bg-[var(--bg-card)] border border-[var(--border-card)] rounded-lg py-1 text-sm font-semibold focus:outline-none text-[var(--text-main)]">
+                            </div>
+                            <div class="bg-[var(--bg-muted)] p-2.5 rounded-xl border border-[var(--border-card)]">
+                                <label class="block text-[10px] font-semibold uppercase tracking-wider text-center mb-1 text-[var(--text-muted)]">ADO</label>
+                                <input type="number" id="exhaustedAdo" value="1" min="0" class="w-full text-center bg-[var(--bg-card)] border border-[var(--border-card)] rounded-lg py-1 text-sm font-semibold focus:outline-none text-[var(--text-main)]">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manual Override Inputs Panel -->
+                    <div id="manualInputs" class="space-y-3 animate-fade-in">
+                        <p class="text-xs leading-relaxed text-[var(--text-muted)]">Type your actual net remaining balances today (<strong class="opacity-80">06/06/2026</strong>) to seed future accruals:</p>
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="bg-[var(--bg-muted)] p-2.5 rounded-xl border border-[var(--border-card)]">
+                                <label class="block text-[10px] font-semibold uppercase tracking-wider text-center mb-1 text-[var(--text-muted)]">Annual</label>
+                                <input type="number" id="manualAnnual" value="5" min="0" step="0.1" class="w-full text-center bg-[var(--bg-card)] border border-[var(--border-card)] rounded-lg py-1 text-sm font-semibold focus:outline-none text-[var(--text-main)]">
+                            </div>
+                            <div class="bg-[var(--bg-muted)] p-2.5 rounded-xl border border-[var(--border-card)]">
+                                <label class="block text-[10px] font-semibold uppercase tracking-wider text-center mb-1 text-[var(--text-muted)]">Sick</label>
+                                <input type="number" id="manualSick" value="0.5" min="0" step="0.1" class="w-full text-center bg-[var(--bg-card)] border border-[var(--border-card)] rounded-lg py-1 text-sm font-semibold focus:outline-none text-[var(--text-main)]">
+                            </div>
+                            <div class="bg-[var(--bg-muted)] p-2.5 rounded-xl border border-[var(--border-card)]">
+                                <label class="block text-[10px] font-semibold uppercase tracking-wider text-center mb-1 text-[var(--text-muted)]">ADO</label>
+                                <input type="number" id="manualAdo" value="3" min="0" step="0.1" class="w-full text-center bg-[var(--bg-card)] border border-[var(--border-card)] rounded-lg py-1 text-sm font-semibold focus:outline-none text-[var(--text-main)]">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live Today Current Accrual Display -->
+                    <div class="bg-neutral-900 text-white rounded-xl p-4 space-y-2.5 mt-2">
+                        <div class="flex justify-between items-center text-xs text-neutral-400">
+                            <span>Balance Remaining Today:</span>
+                            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 font-semibold px-2 py-0.5 rounded">Calibrated</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-1 text-center font-mono">
+                            <div>
+                                <p class="text-[9px] text-neutral-400 uppercase">Annual</p>
+                                <p id="todayAnnualBal" class="text-sm font-semibold text-emerald-400">5.0d</p>
+                            </div>
+                            <div>
+                                <p class="text-[9px] text-neutral-400 uppercase">Sick</p>
+                                <p id="todaySickBal" class="text-sm font-semibold text-blue-400">0.5d</p>
+                            </div>
+                            <div>
+                                <p class="text-[9px] text-neutral-400 uppercase">ADO</p>
+                                <p id="todayAdoBal" class="text-sm font-semibold text-amber-400">3.0d</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fatigue Cushion Flag -->
+                <div class="bg-emerald-50/50 border border-emerald-200/80 rounded-2xl p-4 space-y-2 hover:bg-emerald-50 transition-colors duration-300">
+                    <div class="flex items-center gap-2 text-emerald-900">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-emerald-600"></i>
+                        <span class="text-xs font-semibold tracking-wider uppercase">Burnout Shield Optimizer</span>
+                    </div>
+                    <p class="text-xs text-neutral-600 leading-relaxed font-medium">Adds 1 day of recovery automatically for deep international routes (&gt; 9 days).</p>
+                    <label class="inline-flex items-center cursor-pointer mt-1">
+                        <input type="checkbox" id="fatigueShield" checked class="sr-only peer">
+                        <div class="relative w-9 h-5 bg-neutral-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
+                        <span class="ms-3 text-xs font-medium text-neutral-700">Shield Active</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Right Grid: Live Interactive Optimizer Matrix (Span 8) -->
+            <div class="lg:col-span-8 space-y-6">
+                <div class="bg-[var(--bg-card)] border border-[var(--border-card)] rounded-2xl p-6 shadow-xs hover:border-neutral-300 transition-all duration-300">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 mb-6">
+                        <div>
+                            <h2 class="text-lg font-medium text-[var(--text-main)]">Travel Architecture Planner</h2>
+                            <p class="text-xs text-[var(--text-muted)] mt-1">Simulate destinations, precise travel dates, and flexible shifts</p>
+                        </div>
+                        
+                        <div class="flex flex-wrap items-center gap-3">
+                            <!-- Custom Ordering Priority Toggle -->
+                            <div class="flex items-center gap-2.5 bg-[var(--bg-muted)] px-3 py-1.5 rounded-xl border border-[var(--border-card)]">
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="customOrderToggle" class="sr-only peer">
+                                    <div class="relative w-7 h-4 bg-neutral-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-neutral-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-emerald-600"></div>
+                                    <span class="ms-2 text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)]">Manual Priority Order</span>
+                                </label>
+                            </div>
+
+                            <button onclick="addTripRow()" class="flex items-center gap-2 bg-[var(--bg-accent)] text-[var(--text-accent)] hover:bg-[var(--bg-accent-hover)] text-xs font-medium px-4 py-2 rounded-xl transition-all transform hover:-translate-y-0.5 shadow-sm cursor-pointer">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Destination
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Row Matrix Container -->
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse min-w-[780px]">
+                            <thead>
+                                <tr class="border-b border-neutral-100 text-neutral-400 font-semibold text-[10px] uppercase tracking-wider">
+                                    <th class="pb-3 w-[24%]">Destination</th>
+                                    <th class="pb-3 w-[20%]">Depart Date</th>
+                                    <th class="pb-3 w-[20%]">Return Date</th>
+                                    <th class="pb-3 w-[20%]">Flexibility</th>
+                                    <th class="pb-3 text-right w-[16%]">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tripsContainer" class="divide-y divide-neutral-100">
+                                <!-- JS injected structural elements -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-8 pt-4 border-t border-neutral-150 flex justify-end">
+                        <button onclick="optimizeLeave()" class="bg-[var(--bg-accent)] text-[var(--text-accent)] hover:bg-[var(--bg-accent-hover)] text-sm px-6 py-3 rounded-xl hover:shadow-md transition-all font-semibold tracking-wide cursor-pointer flex items-center gap-2">
+                            <i data-lucide="bolt" class="w-4 h-4 text-emerald-400 animate-spin" style="animation-duration: 3s;"></i> Generate Optimized Plan
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Output Screen -->
+                <div id="resultsCard" class="hidden bg-[var(--bg-card)] border border-[var(--border-card)] rounded-2xl p-6 shadow-sm space-y-6 animate-slide-up">
+                    <div class="flex items-center justify-between border-b border-neutral-100 pb-4">
+                        <div>
+                            <h3 class="text-sm font-bold tracking-wider uppercase text-[var(--text-muted)]">Chronological Simulation Report</h3>
+                            <p class="text-xs text-[var(--text-muted)]">Balances accrue up to departure date. Flex shifting is mapped dynamically.</p>
+                        </div>
+                        <span class="text-xs bg-emerald-50 text-emerald-800 font-semibold px-2.5 py-1 rounded-full border border-emerald-100">Optimized successfully</span>
+                    </div>
+
+                    <!-- Destination Chronological Journey Cards -->
+                    <div id="itineraryResults" class="space-y-4"></div>
+
+                    <!-- Cumulative Global Dashboard Stats -->
+                    <div class="bg-neutral-950 text-white p-5 rounded-2xl grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+                        <div class="flex flex-col justify-center">
+                            <p class="text-[10px] text-neutral-400 uppercase tracking-widest">Total Away</p>
+                            <p id="tallyTotal" class="text-2xl font-light text-white mt-1">0</p>
+                        </div>
+                        <div class="flex flex-col justify-center">
+                            <p class="text-[10px] text-neutral-400 uppercase tracking-widest">Annual Paid</p>
+                            <p id="tallyAnnual" class="text-2xl font-light text-emerald-400 mt-1">0d</p>
+                        </div>
+                        <div class="flex flex-col justify-center">
+                            <p class="text-[10px] text-neutral-400 uppercase tracking-widest">ADO Contrib.</p>
+                            <p id="tallyAdo" class="text-2xl font-light text-amber-400 mt-1">0d</p>
+                        </div>
+                        <div class="flex flex-col justify-center">
+                            <p class="text-[10px] text-neutral-400 uppercase tracking-widest">Sick Rested</p>
+                            <p id="tallySick" class="text-2xl font-light text-blue-400 mt-1">0d</p>
+                        </div>
+                        <div class="col-span-2 sm:col-span-1 border-t sm:border-t-0 sm:border-l border-neutral-800 pt-3 sm:pt-0 flex flex-col justify-center bg-neutral-900/50 p-2 rounded-xl">
+                            <p class="text-[10px] text-rose-400 uppercase tracking-widest font-semibold">Unpaid Req.</p>
+                            <p id="tallyUnpaid" class="text-2xl font-semibold text-rose-500 mt-1">0d</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Simple Modern Footer -->
+    <footer class="max-w-6xl mx-auto w-full text-center py-8 text-xs border-t border-neutral-200/50 mt-12 text-[var(--text-muted)] relative">
+        <p>Wallaby leave engine. Calculated strictly under Australian Fair Work Regulations. Accrual coefficient: 0.076923.</p>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button id="backToTopBtn" onclick="scrollToTop()" class="fixed bottom-6 right-6 p-3 bg-[var(--bg-accent)] text-[var(--text-accent)] hover:bg-[var(--bg-accent-hover)] rounded-full shadow-lg transition-all duration-300 transform translate-y-16 opacity-0 hover:-translate-y-1 z-50 cursor-pointer border border-[var(--border-card)]">
+        <i data-lucide="arrow-up" class="w-5 h-5"></i>
+    </button>
+
+    <script>
+        // State-by-State Public Holiday Data for 2026
+        const stateHolidays2026 = {
+            VIC: [
+                "2026-01-01", // New Year's Day
+                "2026-01-26", // Australia Day
+                "2026-03-09", // Labour Day
+                "2026-04-03", // Good Friday
+                "2026-04-04", // Easter Saturday
+                "2026-04-05", // Easter Sunday
+                "2026-04-06", // Easter Monday
+                "2026-04-25", // Anzac Day
+                "2026-06-08", // King's Birthday
+                "2026-09-25", // Friday before AFL Grand Final
+                "2026-11-03", // Melbourne Cup Day
+                "2026-12-25", // Christmas Day
+                "2026-12-28"  // Boxing Day (Observed)
+            ],
+            NSW: [
+                "2026-01-01", "2026-01-26", "2026-04-03", "2026-04-04",
+                "2026-04-05", "2026-04-06", "2026-04-25", "2026-04-27", // Anzac Day Observed
+                "2026-06-08", "2026-10-05", // Labour Day
+                "2026-12-25", "2026-12-28"
+            ],
+            QLD: [
+                "2026-01-01", "2026-01-26", "2026-04-03", "2026-04-04",
+                "2026-04-05", "2026-04-06", "2026-04-25", "2026-05-04", // Labour Day
+                "2026-10-05", // King's Birthday
+                "2026-12-25", "2026-12-28"
+            ],
+            WA: [
+                "2026-01-01", "2026-01-26", "2026-03-02", // Labour Day
+                "2026-04-03", "2026-04-05", "2026-04-06", "2026-04-25", "2026-04-27", // Anzac Day Observed
+                "2026-06-01", // WA Day
+                "2026-09-28", // King's Birthday
+                "2026-12-25", "2026-12-28"
+            ],
+            SA: [
+                "2026-01-01", "2026-01-26", "2026-03-09", // Adelaide Cup
+                "2026-04-03", "2026-04-04", "2026-04-05", "2026-04-06", "2026-04-25",
+                "2026-06-08", "2026-10-05", // Labour Day
+                "2026-12-25", "2026-12-28" // Proclamation Day Observed
+            ],
+            TAS: [
+                "2026-01-01", "2026-01-26", "2026-02-09", // Regular Regatta Day
+                "2026-03-09", // Eight Hours Day
+                "2026-04-03", "2026-04-06", "2026-04-25",
+                "2026-06-08", "2026-11-02", // Recreation Day
+                "2026-12-25", "2026-12-28"
+            ],
+            ACT: [
+                "2026-01-01", "2026-01-26", "2026-03-09", // Canberra Day
+                "2026-04-03", "2026-04-04", "2026-04-05", "2026-04-06", "2026-04-25", "2026-04-27",
+                "2026-06-01", // Reconciliation Day
+                "2026-06-08", "2026-10-05", // Labour Day
+                "2026-12-25", "2026-12-28"
+            ]
+        };
+
+        // Complete database of alphabetically arranged sovereign countries
+        const allCountries = [
+            { code: "AF", name: "Afghanistan" },
+            { code: "AL", name: "Albania" },
+            { code: "DZ", name: "Algeria" },
+            { code: "AD", name: "Andorra" },
+            { code: "AO", name: "Angola" },
+            { code: "AG", name: "Antigua and Barbuda" },
+            { code: "AR", name: "Argentina" },
+            { code: "AM", name: "Armenia" },
+            { code: "AU", name: "Australia" },
+            { code: "AT", name: "Austria" },
+            { code: "AZ", name: "Azerbaijan" },
+            { code: "BS", name: "Bahamas" },
+            { code: "BH", name: "Bahrain" },
+            { code: "BD", name: "Bangladesh" },
+            { code: "BB", name: "Barbados" },
+            { code: "BY", name: "Belarus" },
+            { code: "BE", name: "Belgium" },
+            { code: "BZ", name: "Belize" },
+            { code: "BJ", name: "Benin" },
+            { code: "BT", name: "Bhutan" },
+            { code: "BO", name: "Bolivia" },
+            { code: "BA", name: "Bosnia and Herzegovina" },
+            { code: "BW", name: "Botswana" },
+            { code: "BR", name: "Brazil" },
+            { code: "BN", name: "Brunei" },
+            { code: "BG", name: "Bulgaria" },
+            { code: "BF", name: "Burkina Faso" },
+            { code: "BI", name: "Burundi" },
+            { code: "KH", name: "Cambodia" },
+            { code: "CM", name: "Cameroon" },
+            { code: "CA", name: "Canada" },
+            { code: "CV", name: "Cape Verde" },
+            { code: "CF", name: "Central African Republic" },
+            { code: "TD", name: "Chad" },
+            { code: "CL", name: "Chile" },
+            { code: "CN", name: "China" },
+            { code: "CO", name: "Colombia" },
+            { code: "KM", name: "Comoros" },
+            { code: "CG", name: "Congo" },
+            { code: "CR", name: "Costa Rica" },
+            { code: "HR", name: "Croatia" },
+            { code: "CU", name: "Cuba" },
+            { code: "CY", name: "Cyprus" },
+            { code: "CZ", name: "Czech Republic" },
+            { code: "DK", name: "Denmark" },
+            { code: "DJ", name: "Djibouti" },
+            { code: "DM", name: "Dominica" },
+            { code: "DO", name: "Dominican Republic" },
+            { code: "EC", name: "Ecuador" },
+            { code: "EG", name: "Egypt" },
+            { code: "SV", name: "El Salvador" },
+            { code: "GQ", name: "Equatorial Guinea" },
+            { code: "ER", name: "Eritrea" },
+            { code: "EE", name: "Estonia" },
+            { code: "SZ", name: "Eswatini" },
+            { code: "ET", name: "Ethiopia" },
+            { code: "FJ", name: "Fiji" },
+            { code: "FI", name: "Finland" },
+            { code: "FR", name: "France" },
+            { code: "GA", name: "Gabon" },
+            { code: "GM", name: "Gambia" },
+            { code: "GE", name: "Georgia" },
+            { code: "DE", name: "Germany" },
+            { code: "GH", name: "Ghana" },
+            { code: "GR", name: "Greece" },
+            { code: "GD", name: "Grenada" },
+            { code: "GT", name: "Guatemala" },
+            { code: "GN", name: "Guinea" },
+            { code: "GW", name: "Guinea-Bissau" },
+            { code: "GY", name: "Guyana" },
+            { code: "HT", name: "Haiti" },
+            { code: "HN", name: "Honduras" },
+            { code: "HU", name: "Hungary" },
+            { code: "IS", name: "Iceland" },
+            { code: "IN", name: "India" },
+            { code: "ID", name: "Indonesia" },
+            { code: "IR", name: "Iran" },
+            { code: "IQ", name: "Iraq" },
+            { code: "IE", name: "Ireland" },
+            { code: "IL", name: "Israel" },
+            { code: "IT", name: "Italy" },
+            { code: "JM", name: "Jamaica" },
+            { code: "JP", name: "Japan" },
+            { code: "JO", name: "Jordan" },
+            { code: "KZ", name: "Kazakhstan" },
+            { code: "KE", name: "Kenya" },
+            { code: "KI", name: "Kiribati" },
+            { code: "KP", name: "Korea, North" },
+            { code: "KR", name: "Korea, South" },
+            { code: "KW", name: "Kuwait" },
+            { code: "KG", name: "Kyrgyzstan" },
+            { code: "LA", name: "Laos" },
+            { code: "LV", name: "Latvia" },
+            { code: "LB", name: "Lebanon" },
+            { code: "LS", name: "Lesotho" },
+            { code: "LR", name: "Liberia" },
+            { code: "LY", name: "Libya" },
+            { code: "LI", name: "Liechtenstein" },
+            { code: "LT", name: "Lithuania" },
+            { code: "LU", name: "Luxembourg" },
+            { code: "MG", name: "Madagascar" },
+            { code: "MW", name: "Malawi" },
+            { code: "MY", name: "Malaysia" },
+            { code: "MV", name: "Maldives" },
+            { code: "ML", name: "Mali" },
+            { code: "MT", name: "Malta" },
+            { code: "MH", name: "Marshall Islands" },
+            { code: "MR", name: "Mauritania" },
+            { code: "MU", name: "Mauritius" },
+            { code: "MX", name: "Mexico" },
+            { code: "FM", name: "Micronesia" },
+            { code: "MD", name: "Moldova" },
+            { code: "MC", name: "Monaco" },
+            { code: "MN", name: "Mongolia" },
+            { code: "ME", name: "Montenegro" },
+            { code: "MA", name: "Morocco" },
+            { code: "MZ", name: "Mozambique" },
+            { code: "MM", name: "Myanmar" },
+            { code: "NA", name: "Namibia" },
+            { code: "NR", name: "Nauru" },
+            { code: "NP", name: "Nepal" },
+            { code: "NL", name: "Netherlands" },
+            { code: "NZ", name: "New Zealand" },
+            { code: "NI", name: "Nicaragua" },
+            { code: "NE", name: "Niger" },
+            { code: "NG", name: "Nigeria" },
+            { code: "NO", name: "Norway" },
+            { code: "OM", name: "Oman" },
+            { code: "PK", name: "Pakistan" },
+            { code: "PW", name: "Palau" },
+            { code: "PA", name: "Panama" },
+            { code: "PG", name: "Papua New Guinea" },
+            { code: "PY", name: "Paraguay" },
+            { code: "PE", name: "Peru" },
+            { code: "PH", name: "Philippines" },
+            { code: "PL", name: "Poland" },
+            { code: "PT", name: "Portugal" },
+            { code: "QA", name: "Qatar" },
+            { code: "RO", name: "Romania" },
+            { code: "RU", name: "Russia" },
+            { code: "RW", name: "Rwanda" },
+            { code: "KN", name: "Saint Kitts and Nevis" },
+            { code: "LC", name: "Saint Lucia" },
+            { code: "VC", name: "Saint Vincent" },
+            { code: "WS", name: "Samoa" },
+            { code: "SM", name: "San Marino" },
+            { code: "ST", name: "Sao Tome and Principe" },
+            { code: "SA", name: "Saudi Arabia" },
+            { code: "SN", name: "Senegal" },
+            { code: "RS", name: "Serbia" },
+            { code: "SC", name: "Seychelles" },
+            { code: "SL", name: "Sierra Leone" },
+            { code: "SG", name: "Singapore" },
+            { code: "SK", name: "Slovakia" },
+            { code: "SI", name: "Slovenia" },
+            { code: "SB", name: "Solomon Islands" },
+            { code: "SO", name: "Somalia" },
+            { code: "ZA", name: "South Africa" },
+            { code: "ES", name: "Spain" },
+            { code: "LK", name: "Sri Lanka" },
+            { code: "SD", name: "Sudan" },
+            { code: "SR", name: "Suriname" },
+            { code: "SE", name: "Sweden" },
+            { code: "CH", name: "Switzerland" },
+            { code: "SY", name: "Syria" },
+            { code: "TW", name: "Taiwan" },
+            { code: "TJ", name: "Tajikistan" },
+            { code: "TZ", name: "Tanzania" },
+            { code: "TH", name: "Thailand" },
+            { code: "TL", name: "Timor-Leste" },
+            { code: "TG", name: "Togo" },
+            { code: "TO", name: "Tonga" },
+            { code: "TT", name: "Trinidad and Tobago" },
+            { code: "TN", name: "Tunisia" },
+            { code: "TR", name: "Turkey" },
+            { code: "TM", name: "Turkmenistan" },
+            { code: "TV", name: "Tuvalu" },
+            { code: "UG", name: "Uganda" },
+            { code: "UA", name: "Ukraine" },
+            { code: "AE", name: "United Arab Emirates" },
+            { code: "GB", name: "United Kingdom" },
+            { code: "US", name: "United States" },
+            { code: "UY", name: "Uruguay" },
+            { code: "UZ", name: "Uzbekistan" },
+            { code: "VU", name: "Vanuatu" },
+            { code: "VE", name: "Venezuela" },
+            { code: "VN", name: "Vietnam" },
+            { code: "YE", name: "Yemen" },
+            { code: "ZM", name: "Zambia" },
+            { code: "ZW", name: "Zimbabwe" }
+        ];
+
+        // Specific visa override rules for standard preset passports
+        const visaRules = {
+            AU: {
+                "Melbourne": { needVisa: false, type: "Domestic", processingDays: 0, notes: "No visa required for domestic destinations." },
+                "Tasmania": { needVisa: false, type: "Domestic", processingDays: 0, notes: "No visa required for domestic destinations." },
+                "Thailand": { needVisa: false, type: "Visa Exempt (60 Days)", processingDays: 0, notes: "Australian passport holders enjoy visa exemption up to 60 days on arrival." },
+                "Vietnam": { needVisa: true, type: "E-Visa", processingDays: 4, applyWindowDays: 14, notes: "Requires Vietnamese E-Visa online prior to departure." },
+                "Canada": { needVisa: true, type: "eTA", processingDays: 2, applyWindowDays: 10, notes: "Requires Electronic Travel Authorization (eTA) online." },
+                "NZ": { needVisa: false, type: "SCV Arrival", processingDays: 0, notes: "Special Category Visa (SCV) is issued on arrival in NZ." },
+                "Canada / NZ": { needVisa: true, type: "eTA Required", processingDays: 2, applyWindowDays: 10, notes: "eTA is needed for Canada leg; NZ travel is visa-free." }
+            },
+            NZ: {
+                "Melbourne": { needVisa: false, type: "Domestic Resident SCV", processingDays: 0, notes: "No visa needed. SCV granted on arrival in Australia." },
+                "Tasmania": { needVisa: false, type: "Domestic Resident SCV", processingDays: 0, notes: "No visa needed. SCV granted on arrival in Australia." },
+                "Thailand": { needVisa: false, type: "Visa Exempt (60 Days)", processingDays: 0, notes: "New Zealand passport holders enjoy visa exemption up to 60 days on arrival." },
+                "Vietnam": { needVisa: true, type: "E-Visa", processingDays: 4, applyWindowDays: 14, notes: "Requires Vietnamese E-Visa online prior to departure." },
+                "Canada": { needVisa: true, type: "eTA", processingDays: 2, applyWindowDays: 10, notes: "Requires Electronic Travel Authorization (eTA) online." },
+                "NZ": { needVisa: false, type: "Home Citizen", processingDays: 0, notes: "Traveling back to your home country passport territory." },
+                "Canada / NZ": { needVisa: true, type: "eTA Required", processingDays: 2, applyWindowDays: 10, notes: "eTA is needed for Canada leg; NZ is your home territory." }
+            }
+        };
+
+        // Today is June 6, 2026 (local date representation)
+        const TODAY = new Date(2026, 5, 6);
+
+        // Initialized realistic target vacations from the prompt
+        const initialTrips = [
+            { destination: "Melbourne", start: "2026-06-25", end: "2026-06-29", flex: "exact" }, // June end, 5 days
+            { destination: "Thailand", start: "2026-07-10", end: "2026-07-19", flex: "flex-2" }, // July, 10 days
+            { destination: "Vietnam", start: "2026-08-14", end: "2026-08-25", flex: "flex-2" },  // August, 12 days
+            { destination: "Tasmania", start: "2026-09-18", end: "2026-09-21", flex: "exact" },  // September, 4 days
+            { destination: "Canada / NZ", start: "2026-10-02", end: "2026-10-15", flex: "flex-2" } // October, 14 days
+        ];
+
+        // Trigger interactive logo hop animation
+        function hopLogo() {
+            const logo = document.getElementById('wallabyLogoContainer');
+            if (logo) {
+                logo.classList.remove('animate-custom-hop');
+                // Trigger reflow to restart animation smoothly
+                void logo.offsetWidth;
+                logo.classList.add('animate-custom-hop');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Populate all world countries alphabetically
+            const selectEl = document.getElementById('citizenshipSelector');
+            if (selectEl) {
+                selectEl.innerHTML = '';
+                allCountries.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c.code;
+                    option.textContent = c.name;
+                    if (c.code === 'AU') option.selected = true;
+                    selectEl.appendChild(option);
+                });
+            }
+
+            lucide.createIcons();
+            
+            // Build requested initial planner rows
+            initialTrips.forEach(t => addTripRow(t.destination, t.start, t.end, t.flex));
+            
+            // Theme selector binding
+            const themeSelector = document.getElementById('themeSelector');
+            themeSelector.addEventListener('change', (e) => {
+                setTheme(e.target.value);
+            });
+            // Try loading cached theme
+            const cachedTheme = localStorage.getItem('chronos-theme') || 'light';
+            themeSelector.value = cachedTheme;
+            setTheme(cachedTheme);
+
+            // Scroll listener for back to top button
+            window.addEventListener('scroll', handleScroll);
+
+            // Continuous calculation bindings
+            const bindings = [
+                'startDate', 'weeklyHours', 'adoRate', 'balanceMode',
+                'exhaustedAnnual', 'exhaustedSick', 'exhaustedAdo',
+                'manualAnnual', 'manualSick', 'manualAdo', 'stateSelector', 'citizenshipSelector'
+            ];
+            bindings.forEach(id => {
+                document.getElementById(id).addEventListener('input', runContinuousRecalculation);
+                document.getElementById(id).addEventListener('change', runContinuousRecalculation);
+            });
+
+            // Re-optimize when order priorities change
+            document.getElementById('customOrderToggle').addEventListener('change', optimizeLeave);
+
+            document.getElementById('balanceMode').addEventListener('change', handleBalanceModeChange);
+            document.getElementById('todayDisplayDate').innerText = formatAUDate(TODAY);
+
+            handleBalanceModeChange();
+        });
+
+        // Set system theme
+        function setTheme(themeName) {
+            document.body.className = `p-3 md:p-8 min-h-screen flex flex-col justify-between theme-${themeName}`;
+            localStorage.setItem('chronos-theme', themeName);
+        }
+
+        // Handle floating top-arrow visibility on scroll
+        function handleScroll() {
+            const btn = document.getElementById('backToTopBtn');
+            if (window.scrollY > 400) {
+                btn.className = btn.className.replace('translate-y-16 opacity-0', 'translate-y-0 opacity-100');
+            } else {
+                btn.className = btn.className.replace('translate-y-0 opacity-100', 'translate-y-16 opacity-0');
+            }
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Timezone Safe Local Date String Generator (Avoids UTC shift of toISOString)
+        function getLocalYYYYMMDD(dateObj) {
+            if (!dateObj || isNaN(dateObj.getTime())) return "";
+            const year = dateObj.getFullYear();
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Format Date to standard Australian DD/MM/YYYY Format
+        function formatAUDate(dateObj) {
+            if (!dateObj || isNaN(dateObj.getTime())) return "--/--/----";
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        // Parse a YYYY-MM-DD input string safely in local timezone
+        function parseLocalDate(dateStr) {
+            if (!dateStr) return new Date(NaN);
+            if (dateStr instanceof Date) {
+                return new Date(dateStr.getFullYear(), dateStr.getMonth(), dateStr.getDate());
+            }
+            const parts = dateStr.split('-');
+            if (parts.length < 3) return new Date(NaN);
+            const y = parseInt(parts[0], 10);
+            const m = parseInt(parts[1], 10) - 1;
+            const d = parseInt(parts[2], 10);
+            if (isNaN(y) || isNaN(m) || isNaN(d)) return new Date(NaN);
+            return new Date(y, m, d);
+        }
+
+        // Daylight-savings-safe local days diff
+        function getLocalDaysDiff(d1, d2) {
+            if (!d1 || !d2 || isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
+            const utc1 = Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate());
+            const utc2 = Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate());
+            return Math.round((utc2 - utc1) / (1000 * 60 * 60 * 24));
+        }
+
+        // Estimate typical flight baseline price and demand trends
+        function estimateFlightPrice(dest, startDate) {
+            if (!startDate || isNaN(startDate.getTime())) return { price: 0, note: "Invalid travel dates." };
+            
+            let basePrice = 500; // Baseline general cost
+            const d = dest.toLowerCase();
+            
+            if (d.includes("melbourne")) basePrice = 180;
+            else if (d.includes("tasmania")) basePrice = 220;
+            else if (d.includes("thailand")) basePrice = 750;
+            else if (d.includes("vietnam")) basePrice = 850;
+            else if (d.includes("canada")) basePrice = 1650;
+            else if (d.includes("nz") || d.includes("new zealand")) basePrice = 520;
+            else if (d.includes("canada / nz")) basePrice = 1350;
+
+            const month = startDate.getMonth();
+            let multiplier = 1.0;
+            let trendNote = "Standard low-shoulder season flight trends.";
+
+            // June, July are winter school holidays and northern hemisphere peak times.
+            if (month === 5 || month === 6) {
+                multiplier = 1.35;
+                trendNote = "Peak AU winter holiday travel window surge.";
+            } else if (month === 8 || month === 9) { // Sept/Oct Spring school holidays
+                multiplier = 1.15;
+                trendNote = "Moderate Spring break demand peak.";
+            } else if (month === 11) { // Dec Christmas Peak
+                multiplier = 1.55;
+                trendNote = "Extreme peak end-of-year Christmas rush demand.";
+            } else if (month === 1 || month === 2) { // Feb/Mar Low season
+                multiplier = 0.85;
+                trendNote = "Off-peak travel season pricing discounts active.";
+            }
+
+            return {
+                price: Math.round(basePrice * multiplier),
+                note: trendNote
+            };
+        }
+
+        // Dynamic visa advisor lookup calculation with smart country fallbacks
+        function getVisaRuleForPassport(passportCode, destinationKey) {
+            // Check direct mapping override first
+            if (visaRules[passportCode] && visaRules[passportCode][destinationKey]) {
+                return visaRules[passportCode][destinationKey];
+            }
+            
+            // Domestic flights
+            const domesticDestinations = ["Melbourne", "Tasmania"];
+            if (domesticDestinations.includes(destinationKey)) {
+                return { 
+                    needVisa: false, 
+                    type: "Domestic Resident status", 
+                    processingDays: 0, 
+                    notes: "No visa needed for domestic flights (assumes active AU work/resident visa)." 
+                };
+            }
+            
+            // Smart visa classifications for other world passports
+            const strongPassportCodes = [
+                "AT", "BE", "DE", "DK", "ES", "FI", "FR", "IE", "IT", "JP", "LU", "NL", "NO", "PT", "SE", "CH", "TW", "KR", "SG", "MY", "CA", "US", "GB", "AU", "NZ"
+            ];
+            
+            const isStrongPassport = strongPassportCodes.includes(passportCode);
+            
+            const rulesMap = {
+                "Thailand": isStrongPassport 
+                    ? { needVisa: false, type: "Visa Exempt (60 Days)", processingDays: 0, notes: "Your passport qualifies for tourist visa exemption on arrival up to 60 days." }
+                    : { needVisa: true, type: "Tourist Visa", processingDays: 15, applyWindowDays: 30, notes: "Pre-arranged embassy tourist visa or E-Visa required for your passport." },
+                "Vietnam": { 
+                    needVisa: true, 
+                    type: "E-Visa", 
+                    processingDays: isStrongPassport ? 4 : 7, 
+                    applyWindowDays: isStrongPassport ? 14 : 21, 
+                    notes: `Requires online Vietnamese E-Visa prior to departure.` 
+                },
+                "Canada": isStrongPassport
+                    ? { needVisa: true, type: "eTA", processingDays: 2, applyWindowDays: 10, notes: "Requires Electronic Travel Authorization (eTA) registration online." }
+                    : { needVisa: true, type: "Visitor Visa", processingDays: 35, applyWindowDays: 60, notes: "Requires formal online Temporary Resident Visa (TRV) application." },
+                "NZ": isStrongPassport
+                    ? { needVisa: true, type: "NZeTA", processingDays: 1, applyWindowDays: 7, notes: "Requires New Zealand Electronic Travel Authority (NZeTA) online." }
+                    : { needVisa: true, type: "Visitor Visa", processingDays: 25, applyWindowDays: 45, notes: "Requires online New Zealand Visitor Visa application." },
+                "Canada / NZ": isStrongPassport
+                    ? { needVisa: true, type: "eTA & NZeTA Required", processingDays: 2, applyWindowDays: 10, notes: "Requires eTA for Canada and NZeTA for New Zealand." }
+                    : { needVisa: true, type: "Multiple Visas Required", processingDays: 35, applyWindowDays: 60, notes: "Pre-arranged tourist visas required for both Canada and New Zealand." }
+            };
+            
+            return rulesMap[destinationKey] || { needVisa: false, type: "Exempt", processingDays: 0, notes: "Standard tourist guidelines apply." };
+        }
+
+        // Calculate pro-rata mathematical accruals between two dates
+        function getAccrualsBetweenDates(d1, d2) {
+            if (!d1 || !d2 || isNaN(d1.getTime()) || isNaN(d2.getTime()) || d1 >= d2) {
+                return { annual: 0, sick: 0, ado: 0 };
+            }
+
+            const hoursPerWeek = Math.min(parseFloat(document.getElementById('weeklyHours').value) || 38, 38);
+            const adoRatePerMonth = parseFloat(document.getElementById('adoRate').value) || 0;
+
+            const diffDays = getLocalDaysDiff(d1, d2);
+            const weeksWorked = diffDays / 7;
+
+            // Accurate pro-rata continuous hours accruals (4 weeks annual / 2 weeks sick pro-rata)
+            const annualHours = (hoursPerWeek / 38) * 152 * (weeksWorked / 52);
+            const sickHours = (hoursPerWeek / 38) * 76 * (weeksWorked / 52);
+
+            const annualDays = Math.max(0, annualHours / 7.6);
+            const sickDays = Math.max(0, sickHours / 7.6);
+            const adoDays = Math.max(0, (diffDays / 30.416) * adoRatePerMonth);
+
+            return {
+                annual: annualDays,
+                sick: sickDays,
+                ado: adoDays
+            };
+        }
+
+        // Calculate pro-rata mathematical accruals up to a specific limit date
+        function getAccrualsToDate(targetDate) {
+            const startDateStr = document.getElementById('startDate').value;
+            const start = parseLocalDate(startDateStr);
+            const limit = parseLocalDate(targetDate);
+
+            return getAccrualsBetweenDates(start, limit);
+        }
+
+        // Toggle balance input forms based on mode
+        function handleBalanceModeChange() {
+            const mode = document.getElementById('balanceMode').value;
+            const autoInputs = document.getElementById('autoInputs');
+            const manualInputs = document.getElementById('manualInputs');
+            
+            if (mode === 'auto') {
+                autoInputs.classList.remove('hidden');
+                manualInputs.classList.add('hidden');
+            } else {
+                autoInputs.classList.add('hidden');
+                manualInputs.classList.remove('hidden');
+            }
+            runContinuousRecalculation();
+        }
+
+        // Live calculation of "Today's Status Ledger"
+        function runContinuousRecalculation() {
+            const mode = document.getElementById('balanceMode').value;
+            let netAnnual = 0;
+            let netSick = 0;
+            let netAdo = 0;
+
+            const startDateStr = document.getElementById('startDate').value;
+            const start = parseLocalDate(startDateStr);
+            if (isNaN(start.getTime())) {
+                document.getElementById('todayAnnualBal').innerText = `0.0d`;
+                document.getElementById('todaySickBal').innerText = `0.0d`;
+                document.getElementById('todayAdoBal').innerText = `0.0d`;
+                return;
+            }
+
+            if (mode === 'auto') {
+                const todayAccruals = getAccrualsToDate(TODAY);
+                const exhaustedAnnual = parseFloat(document.getElementById('exhaustedAnnual').value) || 0;
+                const exhaustedSick = parseFloat(document.getElementById('exhaustedSick').value) || 0;
+                const exhaustedAdo = parseFloat(document.getElementById('exhaustedAdo').value) || 0;
+
+                netAnnual = Math.max(0, todayAccruals.annual - exhaustedAnnual);
+                netSick = Math.max(0, todayAccruals.sick - exhaustedSick);
+                netAdo = Math.max(0, todayAccruals.ado - exhaustedAdo);
+            } else {
+                netAnnual = parseFloat(document.getElementById('manualAnnual').value) || 0;
+                netSick = parseFloat(document.getElementById('manualSick').value) || 0;
+                netAdo = parseFloat(document.getElementById('manualAdo').value) || 0;
+            }
+
+            document.getElementById('todayAnnualBal').innerText = `${netAnnual.toFixed(1)}d`;
+            document.getElementById('todaySickBal').innerText = `${netSick.toFixed(1)}d`;
+            document.getElementById('todayAdoBal').innerText = `${netAdo.toFixed(1)}d`;
+        }
+
+        function addTripRow(dest = '', startStr = '2026-06-25', endStr = '2026-06-29', flex = 'exact') {
+            const tbody = document.getElementById('tripsContainer');
+            const row = document.createElement('tr');
+            const tripId = 'trip-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            row.setAttribute('data-trip-id', tripId);
+            row.className = "group hover:bg-neutral-50/50 transition-colors duration-150";
+
+            row.innerHTML = `
+                <td class="py-4 pr-3">
+                    <input type="text" value="${dest}" placeholder="e.g. Vietnam" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:bg-[var(--bg-card)] transition-all font-medium text-[var(--text-main)]">
+                </td>
+                <td class="py-4 pr-3">
+                    <input type="date" value="${startStr}" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:bg-[var(--bg-card)] transition-all text-[var(--text-main)]">
+                </td>
+                <td class="py-4 pr-3">
+                    <input type="date" value="${endStr}" class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:bg-[var(--bg-card)] transition-all text-[var(--text-main)]">
+                </td>
+                <td class="py-4 pr-3">
+                    <select class="w-full bg-[var(--bg-muted)] border border-[var(--border-card)] rounded-xl px-3 py-1.5 text-sm focus:outline-none focus:bg-[var(--bg-card)] transition-all text-[var(--text-main)]">
+                        <option value="exact" ${flex === 'exact' ? 'selected' : ''}>Exact Dates</option>
+                        <option value="flex-1" ${flex === 'flex-1' ? 'selected' : ''}>Flexible (+/- 1 Day)</option>
+                        <option value="flex-2" ${flex === 'flex-2' ? 'selected' : ''}>Flexible (+/- 2 Days)</option>
+                    </select>
+                </td>
+                <td class="py-4 text-right">
+                    <div class="flex items-center justify-end gap-1.5">
+                        <!-- Move Up Arrow -->
+                        <button onclick="moveRowUp(this)" class="text-neutral-400 hover:text-[var(--text-main)] hover:bg-[var(--bg-muted)] transition-all cursor-pointer p-1.5 rounded-lg" title="Move Occurence Up">
+                            <i data-lucide="arrow-up" class="w-4 h-4"></i>
+                        </button>
+                        <!-- Move Down Arrow -->
+                        <button onclick="moveRowDown(this)" class="text-neutral-400 hover:text-[var(--text-main)] hover:bg-[var(--bg-muted)] transition-all cursor-pointer p-1.5 rounded-lg" title="Move Occurence Down">
+                            <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                        </button>
+                        <!-- Quick Delete Cross Option (X) -->
+                        <button onclick="deleteTripRow(this)" class="text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer p-1.5 rounded-lg" title="Delete Destination">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row);
+            lucide.createIcons();
+        }
+
+        // Custom Destination deletion with live engine update
+        function deleteTripRow(button) {
+            const row = button.closest('tr');
+            if (row) {
+                row.remove();
+                optimizeLeave();
+            }
+        }
+
+        // Close/Remove Destination by Specific Trip ID (Triggers live recalculation instantly)
+        function deleteTripById(tripId) {
+            const row = document.querySelector(`[data-trip-id="${tripId}"]`);
+            if (row) {
+                row.remove();
+                optimizeLeave();
+            }
+        }
+
+        // Move Row Upwards in Priority
+        function moveRowUp(button) {
+            const row = button.closest('tr');
+            const previous = row.previousElementSibling;
+            if (previous) {
+                row.parentNode.insertBefore(row, previous);
+                optimizeLeave();
+            }
+        }
+
+        // Move Row Downwards in Priority
+        function moveRowDown(button) {
+            const row = button.closest('tr');
+            const next = row.nextElementSibling;
+            if (next) {
+                row.parentNode.insertBefore(next, row);
+                optimizeLeave();
+            }
+        }
+
+        function adjustTripDays(tripId, delta) {
+            const row = document.querySelector(`[data-trip-id="${tripId}"]`);
+            if (!row) return;
+            const inputs = row.querySelectorAll('input');
+            const returnDateInput = inputs[2]; // Return date is index 2
+            if (!returnDateInput.value) return;
+
+            const currentDate = parseLocalDate(returnDateInput.value);
+            if (isNaN(currentDate.getTime())) return;
+            currentDate.setDate(currentDate.getDate() + delta);
+            
+            returnDateInput.value = getLocalYYYYMMDD(currentDate);
+            optimizeLeave();
+        }
+
+        function optimizeLeave() {
+            const rows = document.querySelectorAll('#tripsContainer tr');
+            if (rows.length === 0) {
+                document.getElementById('resultsCard').classList.add('hidden');
+                return;
+            }
+
+            const resultsCard = document.getElementById('resultsCard');
+            const itineraryResults = document.getElementById('itineraryResults');
+            const useShield = document.getElementById('fatigueShield').checked;
+            const selectedState = document.getElementById('stateSelector').value;
+            const selectedCitizenship = document.getElementById('citizenshipSelector').value;
+            const customPriorityOrder = document.getElementById('customOrderToggle').checked;
+            
+            const holidays = stateHolidays2026[selectedState] || [];
+
+            resultsCard.classList.remove('hidden');
+            itineraryResults.innerHTML = '';
+
+            // 1. Map and parse trip row inputs
+            let rawTrips = [];
+            rows.forEach(row => {
+                const tripId = row.getAttribute('data-trip-id');
+                const inputs = row.querySelectorAll('input, select');
+                const dest = inputs[0].value || 'Vacation';
+                const startStr = inputs[1].value;
+                const endStr = inputs[2].value;
+                const flex = inputs[3].value;
+
+                if (startStr && endStr) {
+                    const start = parseLocalDate(startStr);
+                    const end = parseLocalDate(endStr);
+                    // Only process if both dates are valid and start <= end
+                    if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start <= end) {
+                        rawTrips.push({ id: tripId, dest, startStr, endStr, flex });
+                    }
+                }
+            });
+
+            if (rawTrips.length === 0) {
+                resultsCard.classList.add('hidden');
+                return; // No valid trips to optimize
+            }
+
+            // 2. Resolve best date window per trip using flexibility offset scan
+            let plannedTrips = rawTrips.map(trip => {
+                const baseStart = parseLocalDate(trip.startStr);
+                const baseEnd = parseLocalDate(trip.endStr);
+                const baseDuration = getLocalDaysDiff(baseStart, baseEnd) + 1;
+
+                let allowedOffsets = [0];
+                if (trip.flex === 'flex-1') allowedOffsets = [-1, 0, 1];
+                if (trip.flex === 'flex-2') allowedOffsets = [-2, -1, 0, 1, 2];
+
+                let bestShift = 0;
+                let minWorkingDaysRequired = Infinity;
+                let bestStart = new Date(baseStart);
+                let bestEnd = new Date(baseEnd);
+
+                // Scan offset options to find the window that minimizes leave required (working days)
+                allowedOffsets.forEach(offset => {
+                    let tempStart = new Date(baseStart);
+                    tempStart.setDate(baseStart.getDate() + offset);
+                    
+                    let tempEnd = new Date(baseEnd);
+                    tempEnd.setDate(baseEnd.getDate() + offset);
+
+                    let workingDaysCount = 0;
+                    for (let i = 0; i < baseDuration; i++) {
+                        let checkDate = new Date(tempStart);
+                        checkDate.setDate(tempStart.getDate() + i);
+                        let dateStr = getLocalYYYYMMDD(checkDate);
+                        let dayType = checkDate.getDay(); // 0 = Sunday, 6 = Saturday
+
+                        let isPublicHoliday = holidays.includes(dateStr);
+                        let isWeekend = (dayType === 0 || dayType === 6);
+
+                        if (!isPublicHoliday && !isWeekend) {
+                            workingDaysCount++;
+                        }
+                    }
+
+                    // Select shift that needs the absolute fewest actual leave days drawn
+                    if (workingDaysCount < minWorkingDaysRequired) {
+                        minWorkingDaysRequired = workingDaysCount;
+                        bestShift = offset;
+                        bestStart = tempStart;
+                        bestEnd = tempEnd;
+                    }
+                });
+
+                let duration = baseDuration;
+                let isBuffered = false;
+                if (useShield && duration >= 9) {
+                    duration += 1; // Inject structural fatigue recovery cushion
+                    isBuffered = true;
+                    // Add 1 day to end date
+                    bestEnd.setDate(bestEnd.getDate() + 1);
+                }
+
+                return {
+                    id: trip.id,
+                    dest: trip.dest,
+                    origStart: baseStart,
+                    origEnd: baseEnd,
+                    startDate: bestStart,
+                    endDate: bestEnd,
+                    duration: duration,
+                    shiftApplied: bestShift,
+                    isBuffered: isBuffered
+                };
+            });
+
+            // 3. Sorting behavior (Chronological default vs manual priority)
+            if (!customPriorityOrder) {
+                plannedTrips.sort((a, b) => a.startDate - b.startDate);
+            }
+
+            const mode = document.getElementById('balanceMode').value;
+            const exhaustedAnnual = parseFloat(document.getElementById('exhaustedAnnual').value) || 0;
+            const exhaustedSick = parseFloat(document.getElementById('exhaustedSick').value) || 0;
+            const exhaustedAdo = parseFloat(document.getElementById('exhaustedAdo').value) || 0;
+
+            const manualAnnual = parseFloat(document.getElementById('manualAnnual').value) || 0;
+            const manualSick = parseFloat(document.getElementById('manualSick').value) || 0;
+            const manualAdo = parseFloat(document.getElementById('manualAdo').value) || 0;
+
+            let spentAnnual = 0;
+            let spentSick = 0;
+            let spentAdo = 0;
+
+            let finalTally = { total: 0, annual: 0, ado: 0, sick: 0, unpaid: 0 };
+
+            // Render itinerary results with chronological balance consumption
+            plannedTrips.forEach((trip, idx) => {
+                let availableAnnual = 0;
+                let availableSick = 0;
+                let availableAdo = 0;
+
+                if (mode === 'auto') {
+                    const accrualAtTripStart = getAccrualsToDate(trip.startDate);
+                    availableAnnual = Math.max(0, accrualAtTripStart.annual - exhaustedAnnual - spentAnnual);
+                    availableSick = Math.max(0, accrualAtTripStart.sick - exhaustedSick - spentSick);
+                    availableAdo = Math.max(0, accrualAtTripStart.ado - exhaustedAdo - spentAdo);
+                } else {
+                    // Manual mode logic: starting balance + accruals gained between TODAY and the trip
+                    if (trip.startDate > TODAY) {
+                        const futureAccrual = getAccrualsBetweenDates(TODAY, trip.startDate);
+                        availableAnnual = Math.max(0, manualAnnual + futureAccrual.annual - spentAnnual);
+                        availableSick = Math.max(0, manualSick + futureAccrual.sick - spentSick);
+                        availableAdo = Math.max(0, manualAdo + futureAccrual.ado - spentAdo);
+                    } else {
+                        availableAnnual = Math.max(0, manualAnnual - spentAnnual);
+                        availableSick = Math.max(0, manualSick - spentSick);
+                        availableAdo = Math.max(0, manualAdo - spentAdo);
+                    }
+                }
+
+                let dateRangeMap = [];
+                let calendarStripHtml = '';
+
+                let PHdays = 0;
+                let WEdays = 0;
+                let workingDaysRequired = 0;
+
+                // Pre-calculate day types
+                for (let i = 0; i < trip.duration; i++) {
+                    let loopDate = new Date(trip.startDate);
+                    loopDate.setDate(trip.startDate.getDate() + i);
+                    dateRangeMap.push(loopDate);
+
+                    let dateStringStr = getLocalYYYYMMDD(loopDate);
+                    let dayType = loopDate.getDay();
+
+                    if (holidays.includes(dateStringStr)) {
+                        PHdays++;
+                    } else if (dayType === 0 || dayType === 6) {
+                        WEdays++;
+                    } else {
+                        workingDaysRequired++;
+                    }
+                }
+
+                // Balance drawdown simulation
+                let trackingNeeded = workingDaysRequired;
+                let allocatedAdo = 0;
+                let allocatedAnnual = 0;
+                let allocatedSick = 0;
+                let allocatedUnpaid = 0;
+
+                // 1. ADO Drawdown
+                if (availableAdo > 0 && trackingNeeded > 0) {
+                    let take = Math.min(availableAdo, trackingNeeded);
+                    allocatedAdo += take;
+                    trackingNeeded -= take;
+                }
+                // 2. Annual Leave Drawdown
+                if (availableAnnual > 0 && trackingNeeded > 0) {
+                    let take = Math.min(availableAnnual, trackingNeeded);
+                    allocatedAnnual += take;
+                    trackingNeeded -= take;
+                }
+                // 3. Sick / Recovery Leave allocation (Limit to 2 days per trip max to protect balance)
+                if (availableSick > 0 && trackingNeeded > 0) {
+                    let take = Math.min(availableSick, 2, trackingNeeded);
+                    allocatedSick += take;
+                    trackingNeeded -= take;
+                }
+                // 4. Overlap triggers unpaid leave requirement
+                if (trackingNeeded > 0) {
+                    allocatedUnpaid = trackingNeeded;
+                }
+
+                // Update continuous spent tallies to pass to the next chronological vacation
+                spentAnnual += allocatedAnnual;
+                spentSick += allocatedSick;
+                spentAdo += allocatedAdo;
+
+                // Build visual day-by-day strip representation
+                let remainingAdoToDraw = allocatedAdo;
+                let remainingAnnualToDraw = allocatedAnnual;
+                let remainingSickToDraw = allocatedSick;
+                let remainingUnpaidToDraw = allocatedUnpaid;
+
+                dateRangeMap.forEach(day => {
+                    const dateStr = getLocalYYYYMMDD(day);
+                    const dayType = day.getDay();
+                    const dayLabel = day.toLocaleDateString('en-AU', { weekday: 'short' });
+                    const dateLabel = day.getDate();
+
+                    let bgClass = "bg-neutral-200 text-neutral-800";
+                    let tooltipText = "Work Day";
+
+                    if (holidays.includes(dateStr)) {
+                        bgClass = "bg-amber-100 text-amber-800 border border-amber-200";
+                        tooltipText = "Public Holiday (🌴 Paid)";
+                    } else if (dayType === 0 || dayType === 6) {
+                        bgClass = "bg-neutral-100 text-neutral-400 border border-neutral-200";
+                        tooltipText = "Weekend (🌊 Rest)";
+                    } else if (remainingAdoToDraw > 0) {
+                        bgClass = "bg-teal-500 text-white";
+                        tooltipText = "ADO Accrual Day Used (⏳)";
+                        remainingAdoToDraw--;
+                    } else if (remainingAnnualToDraw > 0) {
+                        bgClass = "bg-emerald-600 text-white";
+                        tooltipText = "Annual Leave Used (💼)";
+                        remainingAnnualToDraw--;
+                    } else if (remainingSickToDraw > 0) {
+                        bgClass = "bg-purple-500 text-white";
+                        tooltipText = "Sick/Rest Leave Used (🩺)";
+                        remainingSickToDraw--;
+                    } else if (remainingUnpaidToDraw > 0) {
+                        bgClass = "bg-rose-500 text-white";
+                        tooltipText = "Unpaid Leave Required (🟥)";
+                        remainingUnpaidToDraw--;
+                    }
+
+                    calendarStripHtml += `
+                        <div class="flex-1 min-w-[36px] flex flex-col items-center justify-between p-1.5 rounded-lg ${bgClass} shadow-xs border border-white/10 group/day relative transition-all duration-200 transform hover:scale-105">
+                            <span class="text-[9px] uppercase tracking-tighter opacity-80">${dayLabel}</span>
+                            <span class="text-xs font-bold font-mono my-0.5">${dateLabel}</span>
+                            
+                            <!-- Day Hover Tooltip Detail -->
+                            <div class="absolute bottom-full mb-2 hidden group-hover/day:block bg-neutral-950 text-neutral-100 text-[10px] py-1.5 px-3 rounded-md font-sans whitespace-nowrap z-30 shadow-md border border-neutral-800">
+                                <span class="font-semibold block text-neutral-300 text-right text-[8px] mb-0.5">${formatAUDate(day)}</span>
+                                ${tooltipText}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // --- FLIGHT PRICE CALCULATION BLOCK ---
+                const flightInfo = estimateFlightPrice(trip.dest, trip.startDate);
+
+                // --- VISA ADVISORY CALCULATION BLOCK WITH SMART GLOBAL PASSPORT LOOKUP ---
+                let visaDetailHtml = '';
+                const rule = getVisaRuleForPassport(selectedCitizenship, trip.dest);
+                
+                if (rule.needVisa) {
+                    const visaDeadline = new Date(trip.startDate);
+                    visaDeadline.setDate(trip.startDate.getDate() - (rule.applyWindowDays || 14));
+                    
+                    let deadlineColorClass = "text-rose-600 bg-rose-50 border border-rose-100";
+                    // If deadline has already passed relative to TODAY (06/06/2026)
+                    if (visaDeadline < TODAY) {
+                        deadlineColorClass = "text-red-700 bg-red-100 border border-red-300 animate-pulse";
+                    }
+
+                    visaDetailHtml = `
+                        <div class="p-3.5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs ${deadlineColorClass}">
+                            <div class="flex items-start gap-2.5">
+                                <i data-lucide="shield-alert" class="w-4.5 h-4.5 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <p class="font-bold uppercase tracking-wide">Visa Required (${rule.type})</p>
+                                    <p class="opacity-90 mt-0.5">${rule.notes} Tentative processing time: ${rule.processingDays} days.</p>
+                                </div>
+                            </div>
+                            <div class="md:text-right font-semibold whitespace-nowrap bg-white/40 px-3 py-1.5 rounded-lg border border-black/5">
+                                Apply Before: <span class="font-bold underline">${formatAUDate(visaDeadline)}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    visaDetailHtml = `
+                        <div class="p-3.5 rounded-xl border border-emerald-100 bg-emerald-50/40 text-emerald-800 text-xs flex items-center gap-2.5">
+                            <i data-lucide="shield-check" class="w-4.5 h-4.5 text-emerald-600"></i>
+                            <div>
+                                <strong class="uppercase font-bold tracking-wider text-[10px]">No Prior Pre-Travel Visa Required</strong> — ${rule.notes}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const displayWindow = `${formatAUDate(dateRangeMap[0])} — ${formatAUDate(dateRangeMap[dateRangeMap.length - 1])}`;
+
+                let flexShiftBadge = '';
+                if (trip.shiftApplied !== 0) {
+                    flexShiftBadge = `
+                        <span class="text-[10px] bg-indigo-50 text-indigo-800 font-semibold px-2.5 py-0.5 rounded-md border border-indigo-100 flex items-center gap-1">
+                            <i data-lucide="compass" class="w-3 h-3"></i> Shifted ${trip.shiftApplied > 0 ? '+' : ''}${trip.shiftApplied}d for optimal holiday overlap
+                        </span>
+                    `;
+                }
+
+                itineraryResults.innerHTML += `
+                    <div class="p-5 border border-[var(--border-card)] rounded-2xl bg-[var(--bg-card)] hover:shadow-xs transition-all duration-300 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-100 pb-3">
+                            <div class="flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h4 class="text-base font-semibold text-[var(--text-main)]">${trip.dest}</h4>
+                                    ${trip.isBuffered ? `<span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-md flex items-center gap-1"><i data-lucide="shield" class="w-2.5 h-2.5"></i> Jetlag Buffer</span>` : ''}
+                                    ${flexShiftBadge}
+                                </div>
+                                <p class="text-xs text-[var(--text-muted)] mt-1 font-medium">Vacation Window: <span class="font-semibold text-[var(--text-main)]">${displayWindow}</span></p>
+                            </div>
+                            
+                            <div class="flex items-center gap-2 self-start sm:self-center">
+                                <!-- Interactive Increase/Decrease Duration Pill Badge -->
+                                <div class="text-left sm:text-right flex items-center gap-1 bg-neutral-900 text-white p-1 rounded-xl shadow-sm">
+                                    <button onclick="adjustTripDays('${trip.id}', -1)" class="hover:bg-neutral-800 text-neutral-400 hover:text-white p-1 rounded-lg cursor-pointer transition-all animate-none" title="Decrease Trip Length (contracts return date)">
+                                        <i data-lucide="minus" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                    <span class="text-xs font-mono font-semibold px-2">${trip.duration} days total</span>
+                                    <button onclick="adjustTripDays('${trip.id}', 1)" class="hover:bg-neutral-800 text-neutral-400 hover:text-white p-1 rounded-lg cursor-pointer transition-all animate-none" title="Increase Trip Length (extends return date)">
+                                        <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Cross close option directly on result card to remove vacation -->
+                                <button onclick="deleteTripById('${trip.id}')" class="text-neutral-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all cursor-pointer p-1.5 rounded-xl border border-neutral-200/60 dark:border-neutral-800" title="Remove Destination">
+                                    <i data-lucide="x" class="w-4.5 h-4.5"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Visa Advisory Notification Badge Panel -->
+                        ${visaDetailHtml}
+
+                        <!-- Real-time accruals lookup dialogue -->
+                        <div class="bg-[var(--bg-muted)] p-3.5 rounded-xl border border-[var(--border-card)] space-y-2">
+                            <p class="text-[10px] uppercase tracking-wider font-bold text-[var(--text-muted)]">Accrued Balances Available at Departure (Calculated dynamically)</p>
+                            <div class="grid grid-cols-3 gap-2 font-mono text-xs">
+                                <div>Annual: <strong class="text-emerald-600">${(availableAnnual + allocatedAnnual).toFixed(1)}d</strong></div>
+                                <div>ADO: <strong class="text-teal-700">${(availableAdo + allocatedAdo).toFixed(1)}d</strong></div>
+                                <div>Sick/Carers: <strong class="text-purple-700">${(availableSick + allocatedSick).toFixed(1)}d</strong></div>
+                            </div>
+                        </div>
+
+                        <!-- Visual Day-By-Day Matrix Strip -->
+                        <div class="space-y-1.5">
+                            <p class="text-[9px] uppercase tracking-wider font-bold text-[var(--text-muted)]">Day-by-Day Calendar Composition Matrix (Hover for details)</p>
+                            <div class="flex gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
+                                ${calendarStripHtml}
+                            </div>
+                        </div>
+
+                        <!-- Logistics & Budgetary Flight Trends Indicator -->
+                        <div class="p-3.5 bg-blue-50/30 border border-blue-100 rounded-xl flex items-center justify-between gap-3 text-xs text-blue-950">
+                            <div class="flex items-start gap-2.5">
+                                <i data-lucide="plane-takeoff" class="w-4.5 h-4.5 text-blue-600 flex-shrink-0 mt-0.5"></i>
+                                <div>
+                                    <span class="font-bold uppercase tracking-wider text-[9px] text-blue-500 block mb-0.5">Flight Trends Indicator</span>
+                                    <span>${flightInfo.note} Expect seasonal fluctuation.</span>
+                                </div>
+                            </div>
+                            <div class="font-mono font-bold text-sm text-blue-800 whitespace-nowrap bg-blue-50 px-2.5 py-1 rounded border border-blue-200">
+                                ~ $${flightInfo.price} AUD
+                            </div>
+                        </div>
+
+                        <!-- Allocation Breakdown Pill Labels -->
+                        <div class="flex flex-wrap gap-2 pt-2 text-[11px]">
+                            <span class="px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-200 rounded-full font-medium">🌴 Public Holiday: ${PHdays}d</span>
+                            <span class="px-2.5 py-1 bg-neutral-100 text-neutral-600 border border-neutral-200 rounded-full font-medium">🌊 Weekend: ${WEdays}d</span>
+                            <span class="px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-100 rounded-full font-medium">💼 Annual Used: ${allocatedAnnual.toFixed(1)}d</span>
+                            <span class="px-2.5 py-1 bg-teal-50 text-teal-800 border border-teal-100 rounded-full font-medium">⏳ ADO Contributed: ${allocatedAdo.toFixed(1)}d</span>
+                            <span class="px-2.5 py-1 bg-purple-50 text-purple-800 border border-purple-100 rounded-full font-medium">🩺 Sick Allocated: ${allocatedSick.toFixed(1)}d</span>
+                        </div>
+
+                        ${allocatedUnpaid > 0 ? `
+                        <div class="flex items-center gap-2 text-rose-700 bg-rose-50/50 border border-rose-100 p-2.5 rounded-xl text-xs font-medium">
+                            <i data-lucide="info" class="w-4 h-4 flex-shrink-0"></i>
+                            <span>Accrual Gap: Requires <strong class="underline">${allocatedUnpaid.toFixed(1)} days</strong> of Unpaid Leave.</span>
+                        </div>` : ''}
+                    </div>
+                `;
+
+                finalTally.total += trip.duration;
+                finalTally.annual += allocatedAnnual;
+                finalTally.ado += allocatedAdo;
+                finalTally.sick += allocatedSick;
+                finalTally.unpaid += allocatedUnpaid;
+            });
+
+            // Set final dashboards
+            document.getElementById('tallyTotal').innerText = finalTally.total;
+            document.getElementById('tallyAnnual').innerText = `${finalTally.annual.toFixed(1)}d`;
+            document.getElementById('tallyAdo').innerText = `${finalTally.ado.toFixed(1)}d`;
+            document.getElementById('tallySick').innerText = `${finalTally.sick.toFixed(1)}d`;
+            document.getElementById('tallyUnpaid').innerText = `${finalTally.unpaid.toFixed(1)}d`;
+
+            lucide.createIcons();
+            
+            // Smoothly scroll down to optimized outputs
+            resultsCard.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
