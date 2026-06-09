@@ -13,6 +13,8 @@
     </style>
     <!-- Lucide Icons — pinned version via jsDelivr for reliable loading -->
     <script src="https://cdn.jsdelivr.net/npm/lucide@0.383.0/dist/umd/lucide.min.js"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@1,500;1,600&display=swap');
 
@@ -231,14 +233,138 @@
             max-width: 150px;
         }
 
-        /* ── Destination select dropdown arrow ───────────────────────── */
-        .dest-select {
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%235a7a9a' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-            padding-right: 26px !important;
+
+        /* ── Airport typeahead ──────────────────────────────────────── */
+        .dest-wrap { position: relative; }
+        .dest-input-row {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 7px 12px;
+            cursor: text;
+            transition: border-color 0.15s, box-shadow 0.15s;
         }
+        .dest-input-row:focus-within {
+            border-color: var(--bg-accent);
+            box-shadow: 0 0 0 3px var(--ring-accent, rgba(0,0,0,0.1));
+        }
+        .dest-text-input {
+            flex: 1; min-width: 0; border: none; outline: none;
+            background: transparent; font-size: 0.875rem;
+            font-weight: 500; color: var(--text-main);
+        }
+        .dest-text-input::placeholder { color: var(--text-muted); font-weight: 400; }
+        .dest-iata-badge {
+            font-size: 10px; font-weight: 700; letter-spacing: 1px;
+            color: var(--bg-accent); opacity: 0;
+            transition: opacity 0.2s;
+            font-family: 'Inter', monospace;
+            white-space: nowrap;
+        }
+        .dest-iata-badge.show { opacity: 1; }
+
+        /* Dropdown */
+        .dest-dropdown {
+            position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.16), 0 2px 8px rgba(0,0,0,0.08);
+            z-index: 200; overflow: hidden;
+            display: none;
+        }
+        .dest-dropdown.open { display: block; animation: dropIn 0.18s cubic-bezier(0.34,1.2,0.64,1) both; }
+        @keyframes dropIn {
+            from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+            to   { opacity: 1; transform: translateY(0)  scale(1); }
+        }
+
+        /* Wallaby hop header inside dropdown */
+        .dest-hop-bar {
+            display: flex; align-items: center; gap: 6px;
+            padding: 7px 12px 5px;
+            border-bottom: 1px solid var(--border-card);
+            font-size: 9px; font-weight: 700; letter-spacing: 1.2px;
+            text-transform: uppercase; color: var(--text-muted);
+        }
+        .dest-hop-icon {
+            width: 16px; height: 16px;
+            animation: hopTiny 1.2s cubic-bezier(0.28,0.84,0.42,1) infinite;
+        }
+        @keyframes hopTiny {
+            0%,100% { transform: translateY(0) scale(1,1); }
+            30%      { transform: translateY(-5px) scale(0.9,1.12); }
+            55%      { transform: translateY(-6px) scale(0.95,1.05); }
+            72%      { transform: translateY(1px) scale(1.1,0.88); }
+            85%      { transform: translateY(-1px) scale(0.98,1.02); }
+        }
+        .dest-result {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 12px; cursor: pointer;
+            transition: background 0.1s;
+        }
+        .dest-result:hover, .dest-result.active {
+            background: var(--bg-muted);
+        }
+        .dest-result:last-child { border-radius: 0 0 14px 14px; }
+        .dest-result-flag { font-size: 18px; line-height: 1; flex-shrink: 0; }
+        .dest-result-info { flex: 1; min-width: 0; }
+        .dest-result-city { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dest-result-sub  { font-size: 10px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dest-result-iata {
+            font-size: 11px; font-weight: 800; letter-spacing: 1px;
+            color: var(--bg-accent); flex-shrink: 0;
+            font-family: 'Inter', monospace;
+        }
+        .dest-no-results {
+            padding: 16px 12px; text-align: center;
+            font-size: 12px; color: var(--text-muted);
+        }
+
+        /* ── Price bar grow animation ───────────────────────────────── */
+        @keyframes barGrow {
+            from { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+            to   { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+        }
+        .price-bar-animated {
+            animation: barGrow 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+        }
+
+        /* ── Skyscanner price chart tooltip ─────────────────────────── */
+        .sky-price-tooltip {
+            position: absolute;
+            z-index: 100;
+            bottom: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: 260px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 12px 14px 10px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            transform: translateX(-50%) translateY(4px);
+        }
+        .sky-price-tooltip.visible {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .sky-price-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%; left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--border-card);
+        }
+        .price-bar {
+            transition: opacity 0.2s;
+        }
+        .price-bar:hover { opacity: 0.85; }
 
         /* ── Back to top ─────────────────────────────────────────────── */
         #backToTopBtn {
@@ -342,8 +468,45 @@
                     <svg class="absolute -top-1 -right-1 w-2.5 h-2.5 text-yellow-300 sparkle-fast" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4L12 0Z"/></svg>
                 </div>
                 <div class="hidden sm:block">
-                    <p class="text-sm font-black tracking-widest text-[var(--text-main)] group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-amber-500 group-hover:to-rose-500 transition-all duration-300 uppercase leading-none">Wallaby</p>
-                    <p class="text-[8px] uppercase tracking-widest font-semibold text-[var(--text-muted)] leading-none mt-0.5">Smart leave. Longer breaks.</p>
+                    <!-- WALLABY wordmark — stylised with flight-arc underline + departure plane -->
+                    <svg viewBox="0 0 130 28" class="w-[130px] h-[28px]" xmlns="http://www.w3.org/2000/svg" aria-label="WALLABY">
+                        <defs>
+                            <linearGradient id="wGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#f59e0b"/>
+                                <stop offset="55%" stop-color="#f97316"/>
+                                <stop offset="100%" stop-color="#f43f5e"/>
+                            </linearGradient>
+                            <linearGradient id="wGradHover" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#f59e0b"/>
+                                <stop offset="100%" stop-color="#f43f5e"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Letter forms: W A L L A B Y — condensed, wide-tracked -->
+                        <text x="0" y="16"
+                              font-family="'Inter',sans-serif"
+                              font-weight="900"
+                              font-size="15"
+                              letter-spacing="3"
+                              fill="url(#wGrad)"
+                              class="wordmark-letters">WALLABY</text>
+                        <!-- Flight-arc underline: gentle arc from left → right, rising slightly -->
+                        <path d="M 0 20 Q 52 16 104 19" stroke="url(#wGrad)" stroke-width="1.2" fill="none" opacity="0.7"/>
+                        <!-- Tiny departure plane at the right end of the arc -->
+                        <g transform="translate(104,17) rotate(-8)">
+                            <path d="M0 0 L5 -1.5 L3 0 L5 1.5 Z" fill="#f97316" opacity="0.9"/>
+                            <path d="M1.5 -1 L3.5 -3 L4.2 -2.5 L2.5 -0.5Z" fill="#f97316" opacity="0.7"/>
+                            <path d="M1.5 1 L3 3 L4 2.5 L2.5 0.5Z" fill="#f97316" opacity="0.7"/>
+                        </g>
+                        <!-- Tagline -->
+                        <text x="0" y="26"
+                              font-family="'Inter',sans-serif"
+                              font-weight="600"
+                              font-size="5.5"
+                              letter-spacing="1.8"
+                              fill="currentColor"
+                              opacity="0.45"
+                              class="wordmark-tag">SMART LEAVE · LONGER BREAKS</text>
+                    </svg>
                 </div>
             </div>
 
@@ -570,30 +733,60 @@
 
                     <!-- Login state -->
                     <div id="vaultLogin" class="space-y-3">
-                        <p class="text-xs text-[var(--text-muted)] leading-relaxed">Save your leave plans and track passport & visa expiry dates with visual warnings.</p>
-                        <button onclick="unlockVault()" class="w-full bg-violet-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-violet-700 transition-all cursor-pointer flex items-center justify-center gap-2">
-                            <i data-lucide="log-in" class="w-4 h-4"></i> Login to Sync
-                        </button>
+                        <p class="text-xs text-[var(--text-muted)] leading-relaxed">Save your leave plans and track passport & visa expiry dates. We'll email you a magic link — no password needed.</p>
+                        <div id="vaultEmailForm" class="space-y-2">
+                            <input type="email" id="vaultEmail" placeholder="your@email.com" class="field-input w-full text-sm" />
+                            <button onclick="sendMagicLink()" class="w-full bg-violet-600 text-white text-xs font-semibold px-4 py-2.5 rounded-xl hover:bg-violet-700 transition-all cursor-pointer flex items-center justify-center gap-2">
+                                <i data-lucide="mail" class="w-4 h-4"></i> Send Magic Link
+                            </button>
+                        </div>
+                        <div id="vaultMagicSent" class="hidden space-y-3 py-1">
+                            <div class="text-center space-y-1">
+                                <i data-lucide="send" class="w-7 h-7 text-violet-500 mx-auto"></i>
+                                <p class="text-xs font-semibold text-[var(--text-main)]">Check your inbox!</p>
+                                <p class="text-[11px] text-[var(--text-muted)]">Click the magic link <em>or</em> enter the 6-digit code from your email:</p>
+                            </div>
+                            <div class="flex gap-1.5">
+                                <input id="vaultOtpCode" type="text" maxlength="6" placeholder="123456"
+                                    class="field-input flex-1 text-center text-lg font-bold tracking-[0.3em] !py-2"
+                                    oninput="this.value=this.value.replace(/\D/g,'')">
+                                <button onclick="verifyOtp()" class="bg-violet-600 text-white text-xs font-semibold px-3 py-2 rounded-xl hover:bg-violet-700 transition-all cursor-pointer flex-shrink-0">
+                                    Verify
+                                </button>
+                            </div>
+                            <button onclick="resetVaultLogin()" class="text-[11px] text-violet-400 hover:text-violet-600 transition-colors cursor-pointer w-full text-center">← Use a different email</button>
+                        </div>
+                        <div id="vaultAuthError" class="hidden text-[11px] text-red-500 p-2.5 rounded-xl bg-red-50 border border-red-200"></div>
                     </div>
 
                     <!-- Unlocked vault content -->
                     <div id="vaultContent" class="hidden space-y-4 animate-fade-in">
+                        <!-- Logged-in user info -->
+                        <div class="flex items-center justify-between bg-[var(--bg-muted)] rounded-xl px-3 py-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <i data-lucide="user-check" class="w-4 h-4 text-violet-500 flex-shrink-0"></i>
+                                <span id="vaultUserEmail" class="text-[11px] font-medium text-[var(--text-main)] truncate"></span>
+                            </div>
+                            <button onclick="signOut()" class="text-[11px] text-[var(--text-muted)] hover:text-red-500 transition-colors cursor-pointer flex items-center gap-1 flex-shrink-0 ml-2">
+                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Sign out
+                            </button>
+                        </div>
                         <div class="space-y-3">
                             <div>
                                 <label class="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-[var(--text-muted)]">Passport Expiry</label>
-                                <input type="date" id="passportExpiry" class="field-input" onchange="checkVaultWarnings()">
+                                <input type="date" id="passportExpiry" class="field-input" onchange="saveVaultData(); checkVaultWarnings()">
                             </div>
                             <div>
                                 <label class="block text-[11px] font-semibold uppercase tracking-wider mb-1.5 text-[var(--text-muted)]">Visa Expiry</label>
-                                <input type="date" id="visaExpiry" class="field-input" onchange="checkVaultWarnings()">
+                                <input type="date" id="visaExpiry" class="field-input" onchange="saveVaultData(); checkVaultWarnings()">
                             </div>
                         </div>
                         <div id="vaultWarnings" class="space-y-1.5"></div>
-                        <div class="bg-[var(--bg-muted)] rounded-xl p-3 flex items-center gap-2">
+                        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-center gap-2">
                             <i data-lucide="check-circle" class="w-4 h-4 text-emerald-500 flex-shrink-0"></i>
                             <div>
-                                <p class="text-[10px] font-bold text-[var(--text-main)]">Vault Active</p>
-                                <p class="text-[10px] text-[var(--text-muted)]">Plans auto-saved locally</p>
+                                <p class="text-[10px] font-bold text-emerald-800">Vault Active</p>
+                                <p class="text-[10px] text-emerald-700">Document dates synced to your account</p>
                             </div>
                         </div>
                     </div>
@@ -702,8 +895,9 @@
         <div class="bg-amber-50/60 border border-amber-200/60 rounded-2xl p-4 mb-4 text-amber-900 space-y-1.5">
             <p class="font-bold uppercase tracking-wider text-[10px] text-amber-700">⚠️ Important Disclaimer — Please Read</p>
             <p><strong>Leave calculations</strong> are indicative only. Accrual rules are based on Australian Fair Work Act standards for each employment type. Casual workers do not accrue paid leave. Always verify your actual entitlements with your HR or payroll team — enterprise agreements and awards may vary.</p>
+            <p><strong>ADO (Accrued Days Off) limits:</strong> Some organisations cap ADO balances at a maximum of 5 days or 10 days at any given time. Once you reach this cap, further ADO may not accrue until the balance is drawn down. Please check with your manager or HR team to confirm your organisation's specific ADO cap before planning leave that relies on a higher balance.</p>
             <p><strong>Visa information</strong> is general guidance based on publicly available policy as of 2025. Visa rules change frequently — always verify with the official embassy or government immigration website before booking. This is not legal or immigration advice.</p>
-            <p><strong>Flight prices</strong> are not estimated. The Google Flights links open live search results — real current fares, not fabricated numbers.</p>
+            <p><strong>Flight prices</strong> are not estimated. The Skyscanner links open live search results — real current fares, not fabricated numbers.</p>
         </div>
         <p class="text-center text-[var(--text-muted)]">Wallaby · Australian Fair Work compliant leave engine · v3</p>
     </footer>
@@ -1165,22 +1359,6 @@
             { group: "🗽 Americas",            label: "Atacama Desert, Chile",   key: "atacama" },
         ];
 
-        // Build grouped options HTML string once (reused for every new row)
-        function buildDestOptionsHTML(selectedKey) {
-            let html = `<option value="">— Choose destination —</option>`;
-            let currentGroup = '';
-            DESTINATIONS.forEach(d => {
-                if (d.group !== currentGroup) {
-                    if (currentGroup) html += '</optgroup>';
-                    html += `<optgroup label="${d.group}">`;
-                    currentGroup = d.group;
-                }
-                const sel = (selectedKey && d.key === selectedKey) ? ' selected' : '';
-                html += `<option value="${d.key}"${sel}>${d.label}</option>`;
-            });
-            if (currentGroup) html += '</optgroup>';
-            return html;
-        }
 
         // Fresh start — no prefilled trips so each visitor begins with a blank slate
         const initialTrips = [];
@@ -1368,12 +1546,13 @@
             'tbilisi':'TBS','samarkand':'SKD','almaty':'ALA','marrakech':'RAK','cairo':'CAI'
         };
 
-        function buildFlightSearchUrl(destKey, destLabel, startDate, returnDate) {
+        function buildFlightSearchUrl(destKey, destLabel, startDate, returnDate, iata) {
             if (!startDate || isNaN(startDate.getTime())) return null;
             // Format dates as YYYYMMDD for Skyscanner
             const fmt = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
             const depStr = fmt(startDate);
-            const destCode = (skyscannerCodes[destKey] || 'anywhere').toLowerCase();
+            // Prefer direct IATA, fall back to legacy skyscannerCodes map
+            const destCode = (iata || skyscannerCodes[destKey] || 'anywhere').toLowerCase();
             let url = `https://www.skyscanner.com.au/transport/flights/melb/${destCode}/${depStr}`;
             if (returnDate && !isNaN(returnDate.getTime())) {
                 url += `/${fmt(returnDate)}`;
@@ -1936,14 +2115,28 @@
             row.setAttribute('data-trip-id', tripId);
             row.className = "grid grid-cols-1 md:grid-cols-12 gap-2 p-3 rounded-xl bg-[var(--bg-muted)] border border-[var(--border-card)] items-center animate-fade-in";
 
-            const destOpts = buildDestOptionsHTML(destKey);
+            // Resolve initial value from AIRPORTS if destKey is an IATA code or city name
+            let initIata = '', initCity = '', initCountry = '', initIso2 = '', initRegion = 'default';
+            if (destKey) {
+                const found = AIRPORTS.find(a => a[0] === destKey.toUpperCase() || a[1].toLowerCase() === destKey.toLowerCase());
+                if (found) { initIata=found[0]; initCity=found[1]; initCountry=found[3]; initIso2=found[4]; initRegion=found[5]||'default'; }
+                else { initCity = destKey; }
+            }
 
             row.innerHTML = `
-                <div class="md:col-span-4">
+                <div class="md:col-span-4 dest-wrap"
+                     data-iata="${initIata}" data-city="${initCity}" data-country="${initCountry}" data-iso2="${initIso2}" data-region="${initRegion}">
                     <label class="block md:hidden text-[10px] font-semibold uppercase tracking-wider mb-1 text-[var(--text-muted)]">Destination</label>
-                    <select class="dest-select w-full bg-[var(--bg-card)] border border-[var(--border-card)] rounded-xl px-3 py-2 text-sm focus:outline-none transition-all font-medium text-[var(--text-main)] cursor-pointer">
-                        ${destOpts}
-                    </select>
+                    <div class="dest-input-row">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;opacity:0.4">
+                            <path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19.5 2.5S18 2 16.5 3.5L13 7 4.8 5.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
+                        </svg>
+                        <input type="text" class="dest-text-input" placeholder="Search city or airport…"
+                               value="${initCity}" autocomplete="off" autocorrect="off" spellcheck="false"
+                               oninput="onDestInput(this)" onfocus="onDestFocus(this)" onkeydown="onDestKey(event,this)">
+                        <span class="dest-iata-badge ${initIata ? 'show' : ''}">${initIata}</span>
+                    </div>
+                    <div class="dest-dropdown" role="listbox"></div>
                 </div>
                 <div class="md:col-span-3">
                     <label class="block md:hidden text-[10px] font-semibold uppercase tracking-wider mb-1 text-[var(--text-muted)]">Depart Date</label>
@@ -1953,24 +2146,23 @@
                     <label class="block md:hidden text-[10px] font-semibold uppercase tracking-wider mb-1 text-[var(--text-muted)]">Return Date</label>
                     <input type="date" value="${endStr}" class="w-full bg-[var(--bg-card)] border border-[var(--border-card)] rounded-xl px-3 py-2 text-sm focus:outline-none transition-all text-[var(--text-main)]">
                 </div>
-                <div class="md:col-span-2">
+                <div class="md:col-span-2 flex items-center gap-1.5">
                     <label class="block md:hidden text-[10px] font-semibold uppercase tracking-wider mb-1 text-[var(--text-muted)]">Flexibility</label>
-                    <select class="w-full bg-[var(--bg-card)] border border-[var(--border-card)] rounded-xl px-3 py-2 text-sm focus:outline-none transition-all text-[var(--text-main)]">
+                    <select class="min-w-0 flex-1 bg-[var(--bg-card)] border border-[var(--border-card)] rounded-xl px-2 py-2 text-xs focus:outline-none transition-all text-[var(--text-main)]">
                         <option value="exact" ${flex === 'exact' ? 'selected' : ''}>Exact</option>
-                        <option value="flex-1" ${flex === 'flex-1' ? 'selected' : ''}>±1 Day</option>
-                        <option value="flex-2" ${flex === 'flex-2' ? 'selected' : ''}>±2 Days</option>
+                        <option value="flex-1" ${flex === 'flex-1' ? 'selected' : ''}>±1d</option>
+                        <option value="flex-2" ${flex === 'flex-2' ? 'selected' : ''}>±2d</option>
                     </select>
+                    <div class="hidden md:flex items-center gap-0.5 flex-shrink-0">
+                        <button onclick="moveRowUp(this)" class="w-7 h-7 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition-all cursor-pointer rounded-lg" title="Move Up"><i data-lucide="chevron-up" class="w-3.5 h-3.5"></i></button>
+                        <button onclick="moveRowDown(this)" class="w-7 h-7 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition-all cursor-pointer rounded-lg" title="Move Down"><i data-lucide="chevron-down" class="w-3.5 h-3.5"></i></button>
+                        <button onclick="deleteTripRow(this)" class="w-7 h-7 flex items-center justify-center text-[var(--text-muted)] hover:text-rose-500 hover:bg-rose-50 transition-all cursor-pointer rounded-lg" title="Delete"><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+                    </div>
                 </div>
-                <div class="md:col-span-12 md:hidden border-t border-[var(--border-card)] -mx-3"></div>
-                <div class="md:hidden flex items-center justify-end gap-1.5 -mt-1">
-                    <button onclick="moveRowUp(this)" class="text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition-all cursor-pointer p-1.5 rounded-lg" title="Move Up"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-                    <button onclick="moveRowDown(this)" class="text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition-all cursor-pointer p-1.5 rounded-lg" title="Move Down"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-                    <button onclick="deleteTripRow(this)" class="text-[var(--text-muted)] hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer p-1.5 rounded-lg" title="Delete"><i data-lucide="x" class="w-4 h-4"></i></button>
-                </div>
-                <div class="hidden md:flex items-center justify-end gap-1">
-                    <button onclick="moveRowUp(this)" class="text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition-all cursor-pointer p-1.5 rounded-lg" title="Move Up"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-                    <button onclick="moveRowDown(this)" class="text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition-all cursor-pointer p-1.5 rounded-lg" title="Move Down"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-                    <button onclick="deleteTripRow(this)" class="text-[var(--text-muted)] hover:text-rose-600 hover:bg-rose-50 transition-all cursor-pointer p-1.5 rounded-lg" title="Delete"><i data-lucide="x" class="w-4 h-4"></i></button>
+                <div class="md:hidden flex items-center justify-end gap-1 pt-1 border-t border-[var(--border-card)] col-span-full">
+                    <button onclick="moveRowUp(this)" class="w-8 h-8 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition-all cursor-pointer rounded-lg" title="Move Up"><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
+                    <button onclick="moveRowDown(this)" class="w-8 h-8 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-card)] transition-all cursor-pointer rounded-lg" title="Move Down"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+                    <button onclick="deleteTripRow(this)" class="w-8 h-8 flex items-center justify-center text-[var(--text-muted)] hover:text-rose-500 hover:bg-rose-50 transition-all cursor-pointer rounded-lg" title="Delete"><i data-lucide="x" class="w-4 h-4"></i></button>
                 </div>
             `;
             container.appendChild(row);
@@ -2053,17 +2245,22 @@
             let rawTrips = [];
             rows.forEach(row => {
                 const tripId = row.getAttribute('data-trip-id');
-                const selects = row.querySelectorAll('select');
+                const flexSel = row.querySelector('select');
                 const dateInputs = row.querySelectorAll('input[type="date"]');
-                // selects[0] = destination, selects[1] = flex
-                const destKey = selects[0] ? selects[0].value : '';
-                const flex = selects[1] ? selects[1].value : 'exact';
+                const destWrap = row.querySelector('.dest-wrap');
+                // Read from typeahead data attributes
+                const iata      = destWrap?.dataset.iata     || '';
+                const destCity  = destWrap?.dataset.city     || '';
+                const destCountry = destWrap?.dataset.country || '';
+                const destIso2  = destWrap?.dataset.iso2     || '';
+                const destRegion = destWrap?.dataset.region  || 'default';
+                const flex = flexSel ? flexSel.value : 'exact';
                 const startStr = dateInputs[0] ? dateInputs[0].value : '';
                 const endStr   = dateInputs[1] ? dateInputs[1].value : '';
 
-                // Resolve human-readable display label from DESTINATIONS list
-                const destEntry = DESTINATIONS.find(d => d.key === destKey);
-                const destLabel = destEntry ? destEntry.label : (destKey || 'Destination TBD');
+                // Use city name as destKey for visa engine fuzzy matching
+                const destKey   = destCity || iata;
+                const destLabel = destCity ? (destCountry ? `${destCity}, ${destCountry}` : destCity) : (iata || 'Destination TBD');
 
                 // Skip rows with no destination selected or invalid dates
                 if (!destKey) return;
@@ -2072,7 +2269,7 @@
                     const start = parseLocalDate(startStr);
                     const end = parseLocalDate(endStr);
                     if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start <= end) {
-                        rawTrips.push({ id: tripId, dest: destKey, destLabel, startStr, endStr, flex });
+                        rawTrips.push({ id: tripId, dest: destKey, destLabel, iata, destRegion, startStr, endStr, flex });
                     }
                 }
             });
@@ -2305,7 +2502,7 @@
                 });
 
                 // --- FLIGHT SEARCH LINK + SEASON TREND ---
-                const flightUrl = buildFlightSearchUrl(trip.dest, trip.destLabel, trip.startDate, trip.endDate);
+                const flightUrl = buildFlightSearchUrl(trip.dest, trip.destLabel, trip.startDate, trip.endDate, trip.iata);
                 const trend = getSeasonTrend(trip.startDate);
                 const trendColorMap = { rose: 'rose', amber: 'amber', emerald: 'emerald', blue: 'blue' };
                 const tc = trendColorMap[trend.color] || 'blue';
@@ -2434,7 +2631,10 @@
                             </div>
                             ${flightUrl ? `
                             <a href="${flightUrl}" target="_blank" rel="noopener noreferrer"
-                               class="flex-shrink-0 flex items-center gap-2 bg-[var(--bg-accent)] text-[var(--text-accent)] hover:bg-[var(--bg-accent-hover)] font-semibold text-xs px-3.5 py-2 rounded-xl whitespace-nowrap transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 transform">
+                               class="sky-btn flex-shrink-0 flex items-center gap-2 bg-[var(--bg-accent)] text-[var(--text-accent)] hover:bg-[var(--bg-accent-hover)] font-semibold text-xs px-3.5 py-2 rounded-xl whitespace-nowrap transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 transform"
+                               data-dest-key="${trip.dest}" data-dest-label="${trip.destLabel}" data-depart="${trip.startDate ? getLocalYYYYMMDD(trip.startDate) : ''}" data-region="${trip.destRegion||''}"
+                               onmouseenter="showPriceTooltip(this, this.dataset.destKey, this.dataset.destLabel, this.dataset.depart, this.dataset.region)"
+                               onmouseleave="hidePriceTooltip(this)">
                                 <i data-lucide="plane" class="w-3.5 h-3.5"></i>
                                 Search Skyscanner
                                 <span class="opacity-70 font-normal text-[10px] border-l border-white/30 pl-2">${trend.label} season</span>
@@ -2481,9 +2681,17 @@
             const resultsCard = document.getElementById('resultsCard');
             if (resultsCard.classList.contains('hidden')) { alert('Generate an optimized plan first, then export.'); return; }
 
+            const exportDate = new Date().toLocaleDateString('en-AU', { day:'numeric', month:'long', year:'numeric' });
+            const brandHeader = [
+                `"WALLABY — Smart Leave. Longer Breaks."`,
+                `"Generated: ${exportDate}"`,
+                `"wallaby.app | Australian Fair Work compliant leave engine"`,
+                `"Calculations are indicative only. Verify entitlements with HR."`,
+                ``
+            ];
             const headers = ['Destination','Depart Date','Return Date','Duration (days)','Annual Leave Used','ADO Used','Sick Leave Used','Free Days (WE+PH)','Unpaid Leave','Skyscanner Link'];
             const tripCards = document.querySelectorAll('#itineraryResults .card');
-            let csvRows = [headers.join(',')];
+            let csvRows = [...brandHeader, headers.join(',')];
 
             tripCards.forEach(card => {
                 const heading = card.querySelector('h4')?.innerText || '';
@@ -2519,11 +2727,30 @@
         function exportPDF() {
             const resultsCard = document.getElementById('resultsCard');
             if (resultsCard.classList.contains('hidden')) { alert('Generate an optimized plan first, then export.'); return; }
+            // Inject brand header for print
+            const printBrand = document.createElement('div');
+            printBrand.id = 'print-brand-header';
+            printBrand.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #f97316;padding-bottom:12px;margin-bottom:20px;">
+                    <div>
+                        <div style="font-family:Inter,sans-serif;font-weight:900;font-size:22px;letter-spacing:3px;background:linear-gradient(90deg,#f59e0b,#f97316,#f43f5e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">WALLABY</div>
+                        <div style="font-size:9px;letter-spacing:2px;color:#9ca3af;font-weight:600;margin-top:2px;">SMART LEAVE · LONGER BREAKS</div>
+                    </div>
+                    <div style="text-align:right;font-size:9px;color:#6b7280;line-height:1.6;">
+                        <div>wallaby.app</div>
+                        <div>Generated ${new Date().toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'})}</div>
+                        <div style="margin-top:4px;color:#d97706;font-weight:600;">Indicative only — verify with HR</div>
+                    </div>
+                </div>`;
+            printBrand.style.cssText = 'display:none;';
+            document.body.appendChild(printBrand);
+
             const printStyle = document.createElement('style');
             printStyle.id = 'print-override';
             printStyle.innerHTML = `
                 @media print {
-                    body > *:not(.max-w-6xl) { display: none !important; }
+                    body > *:not(.max-w-6xl):not(#print-brand-header) { display: none !important; }
+                    #print-brand-header { display: block !important; padding: 0 0 0 0; }
                     .config-bar, footer, #backToTopBtn, .lg\\:col-span-4 { display: none !important; }
                     .lg\\:col-span-8 { grid-column: span 12 !important; }
                     #resultsCard { display: block !important; box-shadow: none !important; }
@@ -2534,44 +2761,883 @@
             `;
             document.head.appendChild(printStyle);
             window.print();
-            setTimeout(() => { document.getElementById('print-override')?.remove(); }, 1000);
+            setTimeout(() => {
+                document.getElementById('print-override')?.remove();
+                document.getElementById('print-brand-header')?.remove();
+            }, 1000);
         }
 
-        // ─── Premium Vault — simulated unlock ────────────────────────────
-        function unlockVault() {
+        // ─── Global Airport Database ─────────────────────────────────────
+        // Format: [IATA, City, AirportName, Country, ISO2, PriceRegion]
+        const AIRPORTS = [
+            // ── Australia ──────────────────────────────────────────────────
+            ['SYD','Sydney','Kingsford Smith','Australia','AU','domestic'],
+            ['MEL','Melbourne','Tullamarine','Australia','AU','domestic'],
+            ['BNE','Brisbane','Brisbane Airport','Australia','AU','domestic'],
+            ['PER','Perth','Perth Airport','Australia','AU','domestic'],
+            ['ADL','Adelaide','Adelaide Airport','Australia','AU','domestic'],
+            ['OOL','Gold Coast','Coolangatta','Australia','AU','domestic'],
+            ['CNS','Cairns','Cairns Airport','Australia','AU','domestic'],
+            ['DRW','Darwin','Darwin Airport','Australia','AU','domestic'],
+            ['HBA','Hobart','Hobart Airport','Australia','AU','domestic'],
+            ['CBR','Canberra','Canberra Airport','Australia','AU','domestic'],
+            ['TSV','Townsville','Townsville Airport','Australia','AU','domestic'],
+            ['MKY','Mackay','Mackay Airport','Australia','AU','domestic'],
+            ['ROK','Rockhampton','Rockhampton Airport','Australia','AU','domestic'],
+            ['PPP','Proserpine','Whitsunday Coast','Australia','AU','domestic'],
+            ['AYQ','Uluru','Ayers Rock Airport','Australia','AU','domestic'],
+            ['BME','Broome','Broome Airport','Australia','AU','domestic'],
+            ['BNK','Ballina','Ballina Byron Gateway','Australia','AU','domestic'],
+            ['HTI','Hamilton Island','Great Barrier Reef','Australia','AU','domestic'],
+            ['LST','Launceston','Launceston Airport','Australia','AU','domestic'],
+            ['NTL','Newcastle','Newcastle Airport','Australia','AU','domestic'],
+            ['MQL','Mildura','Mildura Airport','Australia','AU','domestic'],
+            ['KGI','Kalgoorlie','Kalgoorlie Airport','Australia','AU','domestic'],
+            ['PHE','Port Hedland','Port Hedland Airport','Australia','AU','domestic'],
+            ['KTA','Karratha','Karratha Airport','Australia','AU','domestic'],
+            ['MHO','Mount Hotham','Mount Hotham Airport','Australia','AU','domestic'],
+            // ── New Zealand ─────────────────────────────────────────────────
+            ['AKL','Auckland','Auckland Airport','New Zealand','NZ','pacific'],
+            ['CHC','Christchurch','Christchurch Airport','New Zealand','NZ','pacific'],
+            ['WLG','Wellington','Wellington Airport','New Zealand','NZ','pacific'],
+            ['ZQN','Queenstown','Queenstown Airport','New Zealand','NZ','pacific'],
+            ['DUD','Dunedin','Dunedin Airport','New Zealand','NZ','pacific'],
+            ['ROT','Rotorua','Rotorua Airport','New Zealand','NZ','pacific'],
+            // ── Pacific Islands ──────────────────────────────────────────────
+            ['NAN','Nadi','Nadi Airport','Fiji','FJ','pacific'],
+            ['SUV','Suva','Nausori Airport','Fiji','FJ','pacific'],
+            ['VLI','Port Vila','Bauerfield','Vanuatu','VU','pacific'],
+            ['NOU','Noumea','La Tontouta','New Caledonia','NC','pacific'],
+            ['RAR','Rarotonga','Rarotonga Airport','Cook Islands','CK','pacific'],
+            ['PPT','Papeete','Faa\'a Airport','French Polynesia','PF','pacific'],
+            ['INU','Nauru','Nauru Airport','Nauru','NR','pacific'],
+            ['APW','Apia','Faleolo Airport','Samoa','WS','pacific'],
+            ['TBU','Nuku\'alofa','Fua\'amotu Airport','Tonga','TO','pacific'],
+            ['HIR','Honiara','Henderson Airport','Solomon Islands','SB','pacific'],
+            ['HNL','Honolulu','Daniel K. Inouye','United States','US','us_canada'],
+            // ── South East Asia ──────────────────────────────────────────────
+            ['DPS','Bali','Ngurah Rai','Indonesia','ID','se_asia'],
+            ['CGK','Jakarta','Soekarno-Hatta','Indonesia','ID','se_asia'],
+            ['SUB','Surabaya','Juanda Airport','Indonesia','ID','se_asia'],
+            ['LOP','Lombok','Zainuddin Airport','Indonesia','ID','se_asia'],
+            ['LBJ','Labuan Bajo','Komodo Airport','Indonesia','ID','se_asia'],
+            ['BPN','Balikpapan','SAMS Sepinggan','Indonesia','ID','se_asia'],
+            ['UPG','Makassar','Sultan Hasanuddin','Indonesia','ID','se_asia'],
+            ['PLM','Palembang','Sultan Mahmud Badaruddin','Indonesia','ID','se_asia'],
+            ['BKK','Bangkok','Suvarnabhumi','Thailand','TH','se_asia'],
+            ['DMK','Bangkok Don Mueang','Don Mueang','Thailand','TH','se_asia'],
+            ['HKT','Phuket','Phuket Airport','Thailand','TH','se_asia'],
+            ['CNX','Chiang Mai','Chiang Mai Airport','Thailand','TH','se_asia'],
+            ['KBV','Krabi','Krabi Airport','Thailand','TH','se_asia'],
+            ['USM','Koh Samui','Samui Airport','Thailand','TH','se_asia'],
+            ['HDY','Hat Yai','Hat Yai Airport','Thailand','TH','se_asia'],
+            ['SIN','Singapore','Changi Airport','Singapore','SG','se_asia'],
+            ['KUL','Kuala Lumpur','KLIA','Malaysia','MY','se_asia'],
+            ['SZB','Kuala Lumpur Subang','Sultan Abdul Aziz Shah','Malaysia','MY','se_asia'],
+            ['PEN','Penang','Penang Airport','Malaysia','MY','se_asia'],
+            ['BKI','Kota Kinabalu','KK Airport','Malaysia','MY','se_asia'],
+            ['KCH','Kuching','Kuching Airport','Malaysia','MY','se_asia'],
+            ['LGK','Langkawi','Langkawi Airport','Malaysia','MY','se_asia'],
+            ['HAN','Hanoi','Noi Bai Airport','Vietnam','VN','se_asia'],
+            ['SGN','Ho Chi Minh City','Tan Son Nhat','Vietnam','VN','se_asia'],
+            ['DAD','Da Nang','Da Nang Airport','Vietnam','VN','se_asia'],
+            ['PQC','Phu Quoc','Phu Quoc Airport','Vietnam','VN','se_asia'],
+            ['HUI','Hue','Phu Bai Airport','Vietnam','VN','se_asia'],
+            ['CXR','Nha Trang','Cam Ranh Airport','Vietnam','VN','se_asia'],
+            ['MNL','Manila','Ninoy Aquino','Philippines','PH','se_asia'],
+            ['CEB','Cebu','Mactan-Cebu','Philippines','PH','se_asia'],
+            ['CRK','Clark','Clark Airport','Philippines','PH','se_asia'],
+            ['PPS','Puerto Princesa','Puerto Princesa Airport','Philippines','PH','se_asia'],
+            ['RXS','Roxas','Roxas Airport','Philippines','PH','se_asia'],
+            ['TAG','Tagbilaran','Bohol-Panglao','Philippines','PH','se_asia'],
+            ['REP','Siem Reap','Siem Reap Airport','Cambodia','KH','se_asia'],
+            ['PNH','Phnom Penh','Pochentong Airport','Cambodia','KH','se_asia'],
+            ['VTE','Vientiane','Wattay Airport','Laos','LA','se_asia'],
+            ['LPQ','Luang Prabang','Luang Prabang Airport','Laos','LA','se_asia'],
+            ['RGN','Yangon','Mingaladon Airport','Myanmar','MM','se_asia'],
+            ['MDL','Mandalay','Mandalay Airport','Myanmar','MM','se_asia'],
+            ['BWN','Bandar Seri Begawan','Brunei Airport','Brunei','BN','se_asia'],
+            ['DIL','Dili','Presidente Nicolau Lobato','Timor-Leste','TL','se_asia'],
+            // ── Japan ────────────────────────────────────────────────────────
+            ['NRT','Tokyo Narita','Narita Airport','Japan','JP','japan'],
+            ['HND','Tokyo Haneda','Haneda Airport','Japan','JP','japan'],
+            ['KIX','Osaka','Kansai Airport','Japan','JP','japan'],
+            ['ITM','Osaka Itami','Itami Airport','Japan','JP','japan'],
+            ['NGO','Nagoya','Chubu Centrair','Japan','JP','japan'],
+            ['FUK','Fukuoka','Fukuoka Airport','Japan','JP','japan'],
+            ['CTS','Sapporo','New Chitose','Japan','JP','japan'],
+            ['OKA','Okinawa','Naha Airport','Japan','JP','japan'],
+            ['SDJ','Sendai','Sendai Airport','Japan','JP','japan'],
+            ['KMQ','Kanazawa','Komatsu Airport','Japan','JP','japan'],
+            ['HIJ','Hiroshima','Hiroshima Airport','Japan','JP','japan'],
+            ['KMJ','Kumamoto','Kumamoto Airport','Japan','JP','japan'],
+            ['AOJ','Aomori','Aomori Airport','Japan','JP','japan'],
+            // ── South Korea ──────────────────────────────────────────────────
+            ['ICN','Seoul','Incheon Airport','South Korea','KR','japan'],
+            ['GMP','Seoul Gimpo','Gimpo Airport','South Korea','KR','japan'],
+            ['PUS','Busan','Gimhae Airport','South Korea','KR','japan'],
+            ['CJU','Jeju','Jeju Airport','South Korea','KR','japan'],
+            ['TAE','Daegu','Daegu Airport','South Korea','KR','japan'],
+            // ── China ────────────────────────────────────────────────────────
+            ['PEK','Beijing','Capital Airport','China','CN','japan'],
+            ['PKX','Beijing Daxing','Daxing Airport','China','CN','japan'],
+            ['PVG','Shanghai','Pudong Airport','China','CN','japan'],
+            ['SHA','Shanghai Hongqiao','Hongqiao Airport','China','CN','japan'],
+            ['CAN','Guangzhou','Baiyun Airport','China','CN','japan'],
+            ['SZX','Shenzhen','Bao\'an Airport','China','CN','japan'],
+            ['CTU','Chengdu','Tianfu Airport','China','CN','japan'],
+            ['HKG','Hong Kong','HKIA','Hong Kong','HK','japan'],
+            ['MFM','Macau','Macau Airport','Macau','MO','japan'],
+            ['CKG','Chongqing','Jiangbei Airport','China','CN','japan'],
+            ['KMG','Kunming','Changshui Airport','China','CN','japan'],
+            ['XIY','Xi\'an','Xianyang Airport','China','CN','japan'],
+            ['WUH','Wuhan','Tianhe Airport','China','CN','japan'],
+            ['XMN','Xiamen','Gaoqi Airport','China','CN','japan'],
+            ['HAK','Haikou','Meilan Airport','China','CN','japan'],
+            ['SYX','Sanya','Phoenix Airport','China','CN','japan'],
+            // ── Taiwan ───────────────────────────────────────────────────────
+            ['TPE','Taipei','Taoyuan Airport','Taiwan','TW','japan'],
+            ['TSA','Taipei Songshan','Songshan Airport','Taiwan','TW','japan'],
+            ['KHH','Kaohsiung','Kaohsiung Airport','Taiwan','TW','japan'],
+            // ── India ────────────────────────────────────────────────────────
+            ['DEL','Delhi','Indira Gandhi Airport','India','IN','india'],
+            ['BOM','Mumbai','Chhatrapati Shivaji','India','IN','india'],
+            ['BLR','Bengaluru','Kempegowda Airport','India','IN','india'],
+            ['MAA','Chennai','Chennai Airport','India','IN','india'],
+            ['CCU','Kolkata','Netaji Subhash Airport','India','IN','india'],
+            ['HYD','Hyderabad','Rajiv Gandhi Airport','India','IN','india'],
+            ['AMD','Ahmedabad','Sardar Vallabhbhai','India','IN','india'],
+            ['COK','Kochi','Cochin Airport','India','IN','india'],
+            ['PNQ','Pune','Pune Airport','India','IN','india'],
+            ['GOI','Goa','Dabolim Airport','India','IN','india'],
+            ['JAI','Jaipur','Jaipur Airport','India','IN','india'],
+            ['IXC','Chandigarh','Chandigarh Airport','India','IN','india'],
+            ['LKO','Lucknow','Chaudhary Charan Singh','India','IN','india'],
+            ['GAU','Guwahati','Lokpriya Gopinath','India','IN','india'],
+            ['IXB','Bagdogra','Bagdogra Airport','India','IN','india'],
+            // ── Sri Lanka & Maldives ──────────────────────────────────────────
+            ['CMB','Colombo','Bandaranaike Airport','Sri Lanka','LK','india'],
+            ['MLE','Malé','Velana Airport','Maldives','MV','se_asia'],
+            // ── Nepal & Bhutan ───────────────────────────────────────────────
+            ['KTM','Kathmandu','Tribhuvan Airport','Nepal','NP','india'],
+            ['PBH','Paro','Paro Airport','Bhutan','BT','india'],
+            // ── Middle East ──────────────────────────────────────────────────
+            ['DXB','Dubai','Dubai International','UAE','AE','middle_east'],
+            ['DWC','Dubai Al Maktoum','Al Maktoum Airport','UAE','AE','middle_east'],
+            ['AUH','Abu Dhabi','Zayed International','UAE','AE','middle_east'],
+            ['SHJ','Sharjah','Sharjah Airport','UAE','AE','middle_east'],
+            ['RKT','Ras Al Khaimah','RAK Airport','UAE','AE','middle_east'],
+            ['DOH','Doha','Hamad Airport','Qatar','QA','middle_east'],
+            ['BAH','Manama','Bahrain Airport','Bahrain','BH','middle_east'],
+            ['KWI','Kuwait City','Kuwait Airport','Kuwait','KW','middle_east'],
+            ['MCT','Muscat','Muscat Airport','Oman','OM','middle_east'],
+            ['SLL','Salalah','Salalah Airport','Oman','OM','middle_east'],
+            ['AMM','Amman','Queen Alia Airport','Jordan','JO','middle_east'],
+            ['AQJ','Aqaba','King Hussein Airport','Jordan','JO','middle_east'],
+            ['IST','Istanbul','Istanbul Airport','Turkey','TR','middle_east'],
+            ['SAW','Istanbul Sabiha','Sabiha Gökçen','Turkey','TR','middle_east'],
+            ['AYT','Antalya','Antalya Airport','Turkey','TR','middle_east'],
+            ['ASR','Kayseri','Erkilet Airport','Turkey','TR','middle_east'],
+            ['TLV','Tel Aviv','Ben Gurion Airport','Israel','IL','middle_east'],
+            ['BGW','Baghdad','Baghdad Airport','Iraq','IQ','middle_east'],
+            ['IKA','Tehran','Imam Khomeini Airport','Iran','IR','middle_east'],
+            ['CAI','Cairo','Cairo Airport','Egypt','EG','middle_east'],
+            ['HRG','Hurghada','Hurghada Airport','Egypt','EG','middle_east'],
+            ['SSH','Sharm El-Sheikh','Sharm El-Sheikh Airport','Egypt','EG','middle_east'],
+            ['LXR','Luxor','Luxor Airport','Egypt','EG','middle_east'],
+            // ── Africa ───────────────────────────────────────────────────────
+            ['JNB','Johannesburg','O.R. Tambo Airport','South Africa','ZA','default'],
+            ['CPT','Cape Town','Cape Town Airport','South Africa','ZA','default'],
+            ['DUR','Durban','King Shaka Airport','South Africa','ZA','default'],
+            ['NBO','Nairobi','Jomo Kenyatta Airport','Kenya','KE','default'],
+            ['MBA','Mombasa','Moi Airport','Kenya','KE','default'],
+            ['EBB','Entebbe','Entebbe Airport','Uganda','UG','default'],
+            ['DAR','Dar es Salaam','Julius Nyerere Airport','Tanzania','TZ','default'],
+            ['ZNZ','Zanzibar','Abeid Amani Karume','Tanzania','TZ','default'],
+            ['ADD','Addis Ababa','Bole Airport','Ethiopia','ET','default'],
+            ['ACC','Accra','Kotoka Airport','Ghana','GH','default'],
+            ['LOS','Lagos','Murtala Muhammed','Nigeria','NG','default'],
+            ['ABV','Abuja','Nnamdi Azikiwe Airport','Nigeria','NG','default'],
+            ['CMN','Casablanca','Mohammed V Airport','Morocco','MA','default'],
+            ['RAK','Marrakech','Menara Airport','Morocco','MA','default'],
+            ['TNG','Tangier','Ibn Battouta Airport','Morocco','MA','default'],
+            ['TUN','Tunis','Carthage Airport','Tunisia','TN','default'],
+            ['ALG','Algiers','Houari Boumediene','Algeria','DZ','default'],
+            ['MRU','Mauritius','Sir Seewoosagur Airport','Mauritius','MU','default'],
+            ['RUN','La Réunion','Roland Garros Airport','Réunion','RE','default'],
+            ['HRE','Harare','Robert Gabriel Mugabe','Zimbabwe','ZW','default'],
+            ['SEZ','Seychelles','Seychelles Airport','Seychelles','SC','default'],
+            ['MPM','Maputo','Maputo Airport','Mozambique','MZ','default'],
+            ['TNR','Antananarivo','Ivato Airport','Madagascar','MG','default'],
+            // ── Europe — Western ─────────────────────────────────────────────
+            ['LHR','London Heathrow','Heathrow Airport','United Kingdom','GB','europe'],
+            ['LGW','London Gatwick','Gatwick Airport','United Kingdom','GB','europe'],
+            ['STN','London Stansted','Stansted Airport','United Kingdom','GB','europe'],
+            ['LTN','London Luton','Luton Airport','United Kingdom','GB','europe'],
+            ['MAN','Manchester','Manchester Airport','United Kingdom','GB','europe'],
+            ['EDI','Edinburgh','Edinburgh Airport','United Kingdom','GB','europe'],
+            ['GLA','Glasgow','Glasgow Airport','United Kingdom','GB','europe'],
+            ['BRS','Bristol','Bristol Airport','United Kingdom','GB','europe'],
+            ['BHX','Birmingham','Birmingham Airport','United Kingdom','GB','europe'],
+            ['CDG','Paris','Charles de Gaulle','France','FR','europe'],
+            ['ORY','Paris Orly','Orly Airport','France','FR','europe'],
+            ['NCE','Nice','Côte d\'Azur Airport','France','FR','europe'],
+            ['LYS','Lyon','Saint-Exupéry Airport','France','FR','europe'],
+            ['MRS','Marseille','Provence Airport','France','FR','europe'],
+            ['BOD','Bordeaux','Mérignac Airport','France','FR','europe'],
+            ['TLS','Toulouse','Blagnac Airport','France','FR','europe'],
+            ['AMS','Amsterdam','Schiphol Airport','Netherlands','NL','europe'],
+            ['BRU','Brussels','Brussels Airport','Belgium','BE','europe'],
+            ['CRL','Brussels Charleroi','Brussels South','Belgium','BE','europe'],
+            ['LUX','Luxembourg','Luxembourg Airport','Luxembourg','LU','europe'],
+            ['FRA','Frankfurt','Frankfurt Airport','Germany','DE','europe'],
+            ['MUC','Munich','Munich Airport','Germany','DE','europe'],
+            ['BER','Berlin','Brandenburg Airport','Germany','DE','europe'],
+            ['DUS','Düsseldorf','Düsseldorf Airport','Germany','DE','europe'],
+            ['HAM','Hamburg','Hamburg Airport','Germany','DE','europe'],
+            ['CGN','Cologne','Cologne/Bonn Airport','Germany','DE','europe'],
+            ['STR','Stuttgart','Stuttgart Airport','Germany','DE','europe'],
+            ['NUE','Nuremberg','Nuremberg Airport','Germany','DE','europe'],
+            ['ZRH','Zurich','Zurich Airport','Switzerland','CH','europe'],
+            ['GVA','Geneva','Geneva Airport','Switzerland','CH','europe'],
+            ['BSL','Basel','EuroAirport','Switzerland/France','CH','europe'],
+            ['VIE','Vienna','Vienna Airport','Austria','AT','europe'],
+            ['INN','Innsbruck','Innsbruck Airport','Austria','AT','europe'],
+            ['LIS','Lisbon','Humberto Delgado Airport','Portugal','PT','europe'],
+            ['OPO','Porto','Francisco de Sá Carneiro','Portugal','PT','europe'],
+            ['FAO','Faro','Faro Airport','Portugal','PT','europe'],
+            ['MAD','Madrid','Adolfo Suárez Airport','Spain','ES','europe'],
+            ['BCN','Barcelona','El Prat Airport','Spain','ES','europe'],
+            ['AGP','Malaga','Malaga Airport','Spain','ES','europe'],
+            ['PMI','Palma de Mallorca','Palma Airport','Spain','ES','europe'],
+            ['IBZ','Ibiza','Ibiza Airport','Spain','ES','europe'],
+            ['ALC','Alicante','Alicante Airport','Spain','ES','europe'],
+            ['SVQ','Seville','San Pablo Airport','Spain','ES','europe'],
+            ['VLC','Valencia','Manises Airport','Spain','ES','europe'],
+            ['TFS','Tenerife South','Reina Sofía Airport','Spain','ES','europe'],
+            ['LPA','Gran Canaria','Las Palmas Airport','Spain','ES','europe'],
+            ['FCO','Rome Fiumicino','Leonardo da Vinci','Italy','IT','europe'],
+            ['CIA','Rome Ciampino','Ciampino Airport','Italy','IT','europe'],
+            ['MXP','Milan Malpensa','Malpensa Airport','Italy','IT','europe'],
+            ['LIN','Milan Linate','Linate Airport','Italy','IT','europe'],
+            ['BGY','Milan Bergamo','Il Caravaggio Airport','Italy','IT','europe'],
+            ['VCE','Venice','Marco Polo Airport','Italy','IT','europe'],
+            ['FLR','Florence','Peretola Airport','Italy','IT','europe'],
+            ['NAP','Naples','Capodichino Airport','Italy','IT','europe'],
+            ['PSA','Pisa','Galileo Galilei Airport','Italy','IT','europe'],
+            ['BLQ','Bologna','Guglielmo Marconi','Italy','IT','europe'],
+            ['PMO','Palermo','Falcone Borsellino','Italy','IT','europe'],
+            ['CTA','Catania','Vincenzo Bellini Airport','Italy','IT','europe'],
+            ['ATH','Athens','Eleftherios Venizelos','Greece','GR','europe'],
+            ['SKG','Thessaloniki','Macedonia Airport','Greece','GR','europe'],
+            ['JTR','Santorini','Thira Airport','Greece','GR','europe'],
+            ['JMK','Mykonos','Mykonos Airport','Greece','GR','europe'],
+            ['HER','Heraklion','Nikos Kazantzakis','Greece','GR','europe'],
+            ['CFU','Corfu','Ioannis Kapodistrias','Greece','GR','europe'],
+            ['RHO','Rhodes','Diagoras Airport','Greece','GR','europe'],
+            ['ZTH','Zakynthos','Dionysios Solomos','Greece','GR','europe'],
+            ['DBV','Dubrovnik','Dubrovnik Airport','Croatia','HR','europe'],
+            ['SPU','Split','Split Airport','Croatia','HR','europe'],
+            ['ZAG','Zagreb','Franjo Tuđman Airport','Croatia','HR','europe'],
+            ['CPH','Copenhagen','Kastrup Airport','Denmark','DK','europe'],
+            ['OSL','Oslo','Gardermoen Airport','Norway','NO','europe'],
+            ['BGO','Bergen','Flesland Airport','Norway','NO','europe'],
+            ['ARN','Stockholm','Arlanda Airport','Sweden','SE','europe'],
+            ['GOT','Gothenburg','Landvetter Airport','Sweden','SE','europe'],
+            ['HEL','Helsinki','Vantaa Airport','Finland','FI','europe'],
+            ['RVN','Rovaniemi','Rovaniemi Airport','Finland','FI','europe'],
+            ['KEF','Reykjavik','Keflavík Airport','Iceland','IS','europe'],
+            ['DUB','Dublin','Dublin Airport','Ireland','IE','europe'],
+            ['ORK','Cork','Cork Airport','Ireland','IE','europe'],
+            ['WAW','Warsaw','Chopin Airport','Poland','PL','europe'],
+            ['KRK','Krakow','John Paul II Airport','Poland','PL','europe'],
+            ['PRG','Prague','Václav Havel Airport','Czech Republic','CZ','europe'],
+            ['BUD','Budapest','Ferenc Liszt Airport','Hungary','HU','europe'],
+            ['OTP','Bucharest','Henri Coandă Airport','Romania','RO','europe'],
+            ['SOF','Sofia','Sofia Airport','Bulgaria','BG','europe'],
+            ['VNO','Vilnius','Vilnius Airport','Lithuania','LT','europe'],
+            ['RIX','Riga','Riga Airport','Latvia','LV','europe'],
+            ['TLL','Tallinn','Lennart Meri Airport','Estonia','EE','europe'],
+            ['LJU','Ljubljana','Brnik Airport','Slovenia','SI','europe'],
+            ['BEG','Belgrade','Nikola Tesla Airport','Serbia','RS','europe'],
+            ['SKP','Skopje','Alexander the Great Airport','North Macedonia','MK','europe'],
+            ['TIA','Tirana','Nënë Tereza Airport','Albania','AL','europe'],
+            ['OHD','Ohrid','St. Paul the Apostle','North Macedonia','MK','europe'],
+            ['SJJ','Sarajevo','Sarajevo Airport','Bosnia','BA','europe'],
+            ['TGD','Podgorica','Podgorica Airport','Montenegro','ME','europe'],
+            ['TIV','Tivat','Tivat Airport','Montenegro','ME','europe'],
+            ['SVA','Svalbard','Longyearbyen Airport','Norway','NO','europe'],
+            ['KIV','Chisinau','Chisinau Airport','Moldova','MD','europe'],
+            ['MSQ','Minsk','Minsk National Airport','Belarus','BY','europe'],
+            ['KBP','Kyiv','Boryspil Airport','Ukraine','UA','europe'],
+            ['ODS','Odessa','Odessa Airport','Ukraine','UA','europe'],
+            ['LWO','Lviv','Danylo Halytskyi Airport','Ukraine','UA','europe'],
+            // ── Europe — Russia ──────────────────────────────────────────────
+            ['SVO','Moscow','Sheremetyevo Airport','Russia','RU','europe'],
+            ['LED','St Petersburg','Pulkovo Airport','Russia','RU','europe'],
+            // ── North America ────────────────────────────────────────────────
+            ['JFK','New York','John F. Kennedy Airport','United States','US','us_canada'],
+            ['LGA','New York LaGuardia','LaGuardia Airport','United States','US','us_canada'],
+            ['EWR','Newark','Newark Liberty Airport','United States','US','us_canada'],
+            ['LAX','Los Angeles','LAX Airport','United States','US','us_canada'],
+            ['ORD','Chicago O\'Hare','O\'Hare Airport','United States','US','us_canada'],
+            ['MDW','Chicago Midway','Midway Airport','United States','US','us_canada'],
+            ['ATL','Atlanta','Hartsfield-Jackson','United States','US','us_canada'],
+            ['DFW','Dallas','Dallas/Fort Worth','United States','US','us_canada'],
+            ['MIA','Miami','Miami Airport','United States','US','us_canada'],
+            ['FLL','Fort Lauderdale','Fort Lauderdale Airport','United States','US','us_canada'],
+            ['SFO','San Francisco','SFO Airport','United States','US','us_canada'],
+            ['SJC','San Jose','Mineta Airport','United States','US','us_canada'],
+            ['OAK','Oakland','Oakland Airport','United States','US','us_canada'],
+            ['SEA','Seattle','Sea-Tac Airport','United States','US','us_canada'],
+            ['BOS','Boston','Logan Airport','United States','US','us_canada'],
+            ['DEN','Denver','Denver Airport','United States','US','us_canada'],
+            ['LAS','Las Vegas','Harry Reid Airport','United States','US','us_canada'],
+            ['PHX','Phoenix','Sky Harbor Airport','United States','US','us_canada'],
+            ['SAN','San Diego','Lindbergh Field','United States','US','us_canada'],
+            ['MSP','Minneapolis','Minneapolis Airport','United States','US','us_canada'],
+            ['DTW','Detroit','Detroit Metro Airport','United States','US','us_canada'],
+            ['PHL','Philadelphia','Philadelphia Airport','United States','US','us_canada'],
+            ['CLT','Charlotte','Douglas Airport','United States','US','us_canada'],
+            ['IAH','Houston','George Bush Airport','United States','US','us_canada'],
+            ['HOU','Houston Hobby','Hobby Airport','United States','US','us_canada'],
+            ['MCO','Orlando','Orlando Airport','United States','US','us_canada'],
+            ['TPA','Tampa','Tampa Airport','United States','US','us_canada'],
+            ['BWI','Baltimore','BWI Airport','United States','US','us_canada'],
+            ['IAD','Washington Dulles','Dulles Airport','United States','US','us_canada'],
+            ['DCA','Washington DC','Reagan Airport','United States','US','us_canada'],
+            ['SLC','Salt Lake City','SLC Airport','United States','US','us_canada'],
+            ['PDX','Portland','Portland Airport','United States','US','us_canada'],
+            ['MSY','New Orleans','Louis Armstrong','United States','US','us_canada'],
+            ['CUN','Cancún','Cancún Airport','Mexico','MX','us_canada'],
+            ['SJD','Cabo San Lucas','Los Cabos Airport','Mexico','MX','us_canada'],
+            ['PVR','Puerto Vallarta','Licenciado Gustavo Díaz','Mexico','MX','us_canada'],
+            ['MEX','Mexico City','Benito Juárez Airport','Mexico','MX','us_canada'],
+            ['GDL','Guadalajara','Miguel Hidalgo Airport','Mexico','MX','us_canada'],
+            ['YYZ','Toronto','Pearson Airport','Canada','CA','us_canada'],
+            ['YVR','Vancouver','Vancouver Airport','Canada','CA','us_canada'],
+            ['YUL','Montreal','Pierre Elliott Trudeau','Canada','CA','us_canada'],
+            ['YYC','Calgary','Calgary Airport','Canada','CA','us_canada'],
+            ['YEG','Edmonton','Edmonton Airport','Canada','CA','us_canada'],
+            ['YHZ','Halifax','Stanfield Airport','Canada','CA','us_canada'],
+            ['YOW','Ottawa','MacDonald-Cartier Airport','Canada','CA','us_canada'],
+            ['YWG','Winnipeg','James Armstrong Richardson','Canada','CA','us_canada'],
+            // ── Caribbean ────────────────────────────────────────────────────
+            ['NAS','Nassau','Lynden Pindling Airport','Bahamas','BS','us_canada'],
+            ['BGI','Barbados','Grantley Adams Airport','Barbados','BB','us_canada'],
+            ['ANU','Antigua','V.C. Bird Airport','Antigua and Barbuda','AG','us_canada'],
+            ['SXM','Sint Maarten','Princess Juliana Airport','Sint Maarten','SX','us_canada'],
+            ['PUJ','Punta Cana','Punta Cana Airport','Dominican Republic','DO','us_canada'],
+            ['SDQ','Santo Domingo','Las Américas Airport','Dominican Republic','DO','us_canada'],
+            ['MBJ','Montego Bay','Sangster Airport','Jamaica','JM','us_canada'],
+            ['KIN','Kingston','Norman Manley Airport','Jamaica','JM','us_canada'],
+            ['HAV','Havana','José Martí Airport','Cuba','CU','us_canada'],
+            ['SJU','San Juan','Luis Muñoz Marín','Puerto Rico','PR','us_canada'],
+            ['BON','Bonaire','Flamingo Airport','Bonaire','BQ','us_canada'],
+            ['AUA','Aruba','Reina Beatrix Airport','Aruba','AW','us_canada'],
+            ['CUR','Curaçao','Hato Airport','Curaçao','CW','us_canada'],
+            // ── South America ────────────────────────────────────────────────
+            ['GRU','São Paulo','Guarulhos Airport','Brazil','BR','us_canada'],
+            ['GIG','Rio de Janeiro','Galeão Airport','Brazil','BR','us_canada'],
+            ['BSB','Brasília','Presidente Juscelino K.','Brazil','BR','us_canada'],
+            ['SSA','Salvador','Deputado Luís Eduardo','Brazil','BR','us_canada'],
+            ['FOR','Fortaleza','Pinto Martins Airport','Brazil','BR','us_canada'],
+            ['REC','Recife','Guararapes Airport','Brazil','BR','us_canada'],
+            ['EZE','Buenos Aires','Ezeiza Airport','Argentina','AR','us_canada'],
+            ['AEP','Buenos Aires Aeroparque','Jorge Newbery Airport','Argentina','AR','us_canada'],
+            ['COR','Córdoba','Ingeniero Taravella','Argentina','AR','us_canada'],
+            ['USH','Ushuaia','Malvinas Argentinas','Argentina','AR','us_canada'],
+            ['SCL','Santiago','Arturo Merino Benítez','Chile','CL','us_canada'],
+            ['PMC','Puerto Montt','El Tepual Airport','Chile','CL','us_canada'],
+            ['BOG','Bogotá','El Dorado Airport','Colombia','CO','us_canada'],
+            ['MDE','Medellín','José María Córdova','Colombia','CO','us_canada'],
+            ['CTG','Cartagena','Rafael Núñez Airport','Colombia','CO','us_canada'],
+            ['LIM','Lima','Jorge Chávez Airport','Peru','PE','us_canada'],
+            ['CUZ','Cusco','Alejandro Velasco Astete','Peru','PE','us_canada'],
+            ['UIO','Quito','Mariscal Sucre Airport','Ecuador','EC','us_canada'],
+            ['GYE','Guayaquil','José Joaquín de Olmedo','Ecuador','EC','us_canada'],
+            ['GPS','Galápagos','Seymour Airport','Ecuador','EC','us_canada'],
+            ['MVD','Montevideo','Carrasco Airport','Uruguay','UY','us_canada'],
+            ['ASU','Asunción','Silvio Pettirossi Airport','Paraguay','PY','us_canada'],
+            ['VVI','Santa Cruz','Viru-Viru Airport','Bolivia','BO','us_canada'],
+            ['CCS','Caracas','Simón Bolívar Airport','Venezuela','VE','us_canada'],
+            // ── Central Asia & Caucasus ──────────────────────────────────────
+            ['TBS','Tbilisi','Shota Rustaveli Airport','Georgia','GE','middle_east'],
+            ['EVN','Yerevan','Zvartnots Airport','Armenia','AM','middle_east'],
+            ['GYD','Baku','Heydar Aliyev Airport','Azerbaijan','AZ','middle_east'],
+            ['ALA','Almaty','Almaty Airport','Kazakhstan','KZ','middle_east'],
+            ['NQZ','Astana','Nursultan Nazarbayev','Kazakhstan','KZ','middle_east'],
+            ['TAS','Tashkent','Islam Karimov Airport','Uzbekistan','UZ','middle_east'],
+            ['SKD','Samarkand','Samarkand Airport','Uzbekistan','UZ','middle_east'],
+            ['DYU','Dushanbe','Dushanbe Airport','Tajikistan','TJ','middle_east'],
+            ['FRU','Bishkek','Manas Airport','Kyrgyzstan','KG','middle_east'],
+            ['ASB','Ashgabat','Oguzhan Airport','Turkmenistan','TM','middle_east'],
+            ['KBL','Kabul','Hamid Karzai Airport','Afghanistan','AF','middle_east'],
+            ['KHI','Karachi','Jinnah Airport','Pakistan','PK','india'],
+            ['LHE','Lahore','Allama Iqbal Airport','Pakistan','PK','india'],
+            ['ISB','Islamabad','New Islamabad Airport','Pakistan','PK','india'],
+            ['DAC','Dhaka','Hazrat Shahjalal Airport','Bangladesh','BD','india'],
+            ['RGR','Rangpur','Rangpur Airport','Bangladesh','BD','india'],
+        ];
+
+        // Country flag emoji helper (ISO2 → flag)
+        function isoToFlag(iso2) {
+            if (!iso2 || iso2.length !== 2) return '🌍';
+            return String.fromCodePoint(...[...iso2.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+        }
+
+        // ─── Airport Typeahead Logic ──────────────────────────────────────
+        function searchAirports(query) {
+            const q = query.toLowerCase().trim();
+            if (q.length < 1) return [];
+            const results = [];
+            const seen = new Set();
+            // Prioritise: IATA exact → city starts-with → airport starts-with → country starts-with → contains
+            const passes = [
+                a => a[0].toLowerCase() === q,
+                a => a[1].toLowerCase().startsWith(q),
+                a => a[2].toLowerCase().startsWith(q),
+                a => a[3].toLowerCase().startsWith(q),
+                a => a[1].toLowerCase().includes(q) || a[2].toLowerCase().includes(q) || a[3].toLowerCase().includes(q),
+            ];
+            for (const pass of passes) {
+                for (const a of AIRPORTS) {
+                    if (!seen.has(a[0]) && pass(a)) { results.push(a); seen.add(a[0]); }
+                    if (results.length >= 8) return results;
+                }
+                if (results.length >= 8) break;
+            }
+            return results;
+        }
+
+        function renderDropdown(wrap, results) {
+            const dd = wrap.querySelector('.dest-dropdown');
+            if (!results.length) {
+                dd.innerHTML = `
+                    <div class="dest-hop-bar">
+                        <svg class="dest-hop-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12.5 14C11.5 7.5,13.5 4,15 6.5C16.5 9,16 11,17 13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                            <path d="M17 13C19.5 11.8,23 12,24.5 14.2C26 16.4,25.5 18,23.2 18.5C20.5 19,18.2 18.2,16.5 16.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M14 20C11.5 22.5,10.2 26.5,10.5 30.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M14 30.5C16.5 30.5,20.2 33.8,19.2 34.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="20" cy="14.8" r="1" fill="currentColor"/>
+                        </svg>
+                        Wallaby couldn't find that one
+                    </div>
+                    <div class="dest-no-results">Try a city, airport, or 3-letter code (e.g. BKK)</div>`;
+                dd.classList.add('open');
+                return;
+            }
+            dd.innerHTML = `
+                <div class="dest-hop-bar">
+                    <svg class="dest-hop-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.5 14C11.5 7.5,13.5 4,15 6.5C16.5 9,16 11,17 13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+                        <path d="M17 13C19.5 11.8,23 12,24.5 14.2C26 16.4,25.5 18,23.2 18.5C20.5 19,18.2 18.2,16.5 16.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M14 20C11.5 22.5,10.2 26.5,10.5 30.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M14 30.5C16.5 30.5,20.2 33.8,19.2 34.8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="20" cy="14.8" r="1" fill="currentColor"/>
+                    </svg>
+                    ${results.length} destination${results.length > 1 ? 's' : ''} found
+                </div>
+                ${results.map((a, i) => `
+                    <div class="dest-result" role="option" tabindex="-1"
+                         data-index="${i}" data-iata="${a[0]}" data-city="${a[1]}"
+                         data-airport="${a[2]}" data-country="${a[3]}" data-iso2="${a[4]}" data-region="${a[5]||'default'}"
+                         onmousedown="selectAirport(event, this)">
+                        <span class="dest-result-flag">${isoToFlag(a[4])}</span>
+                        <div class="dest-result-info">
+                            <div class="dest-result-city">${a[1]}</div>
+                            <div class="dest-result-sub">${a[2]} · ${a[3]}</div>
+                        </div>
+                        <span class="dest-result-iata">${a[0]}</span>
+                    </div>`).join('')}`;
+            dd.classList.add('open');
+        }
+
+        function closeDropdown(wrap) {
+            const dd = wrap?.querySelector('.dest-dropdown');
+            if (dd) { dd.classList.remove('open'); dd.innerHTML = ''; }
+        }
+
+        function selectAirport(e, el) {
+            e.preventDefault();
+            const wrap = el.closest('.dest-wrap');
+            const input = wrap.querySelector('.dest-text-input');
+            const badge = wrap.querySelector('.dest-iata-badge');
+            // Store data on wrapper
+            wrap.dataset.iata    = el.dataset.iata;
+            wrap.dataset.city    = el.dataset.city;
+            wrap.dataset.country = el.dataset.country;
+            wrap.dataset.iso2    = el.dataset.iso2;
+            wrap.dataset.region  = el.dataset.region;
+            // Update input display
+            input.value = el.dataset.city;
+            badge.textContent = el.dataset.iata;
+            badge.classList.add('show');
+            closeDropdown(wrap);
+            input.blur();
+        }
+
+        function onDestInput(input) {
+            const wrap = input.closest('.dest-wrap');
+            const badge = wrap.querySelector('.dest-iata-badge');
+            // Clear stored selection if user is typing again
+            wrap.dataset.iata = '';
+            wrap.dataset.city = input.value;
+            badge.classList.remove('show');
+            const results = searchAirports(input.value);
+            if (input.value.trim().length > 0) renderDropdown(wrap, results);
+            else closeDropdown(wrap);
+        }
+
+        function onDestFocus(input) {
+            const wrap = input.closest('.dest-wrap');
+            if (input.value.trim().length > 0) {
+                const results = searchAirports(input.value);
+                renderDropdown(wrap, results);
+            }
+        }
+
+        function onDestKey(e, input) {
+            const wrap = input.closest('.dest-wrap');
+            const dd = wrap.querySelector('.dest-dropdown');
+            const items = dd.querySelectorAll('.dest-result');
+            const active = dd.querySelector('.dest-result.active');
+            let idx = active ? parseInt(active.dataset.index) : -1;
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                idx = Math.min(idx + 1, items.length - 1);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                idx = Math.max(idx - 1, 0);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (active) { selectAirport(e, active); return; }
+                else if (items.length > 0) { selectAirport(e, items[0]); return; }
+            } else if (e.key === 'Escape') {
+                closeDropdown(wrap); return;
+            } else { return; }
+            items.forEach(it => it.classList.remove('active'));
+            if (items[idx]) { items[idx].classList.add('active'); items[idx].scrollIntoView({ block: 'nearest' }); }
+        }
+
+        // Close dropdown on outside click
+        document.addEventListener('mousedown', e => {
+            document.querySelectorAll('.dest-wrap').forEach(wrap => {
+                if (!wrap.contains(e.target)) closeDropdown(wrap);
+            });
+        });
+
+        // ─── Skyscanner Hover Price Chart ────────────────────────────────
+        // Estimated AUD price indices by destination region × month (Jan–Dec)
+        // Values are relative indices (100 = cheapest month). Real fares vary.
+        const PRICE_PROFILES = {
+            // Region key → [Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec]
+            domestic:   [110,115,105,95, 90, 88, 92, 95, 98,102,108,130],
+            se_asia:    [145,140,125,105,90, 88, 85, 88, 92,100,118,150],
+            japan:      [130,125,150,165,110,100,105,140,135,155,120,125],
+            pacific:    [120,118,112,100,95, 92, 90, 92,100,108,115,128],
+            europe:     [125,120,118,130,140,155,165,160,140,120,115,120],
+            us_canada:  [130,125,120,135,145,155,160,158,140,125,120,132],
+            middle_east:[120,115,110,105,100,95, 98,100,108,115,118,125],
+            india:      [115,110,108,105,100,98, 95,100,108,112,118,130],
+            default:    [120,118,112,105,100,98, 95,100,108,115,120,128],
+        };
+        const DEST_TO_REGION = {
+            // Domestic AU
+            'sydney':'domestic','melbourne':'domestic','brisbane':'domestic','perth':'domestic',
+            'adelaide':'domestic','gold coast':'domestic','cairns':'domestic','darwin':'domestic',
+            'hobart':'domestic','tasmania':'domestic','canberra':'domestic','uluru':'domestic',
+            // SE Asia
+            'bali':'se_asia','bangkok':'se_asia','phuket':'se_asia','singapore':'se_asia',
+            'kuala lumpur':'se_asia','hanoi':'se_asia','ho chi minh city':'se_asia','hoi an':'se_asia',
+            'siem reap':'se_asia','myanmar':'se_asia','penang':'se_asia','chiang mai':'se_asia',
+            'lombok':'se_asia','komodo':'se_asia','koh samui':'se_asia','krabi':'se_asia',
+            'manila':'se_asia','cebu':'se_asia','palawan':'se_asia',
+            // Japan/Korea
+            'tokyo':'japan','osaka':'japan','kyoto':'japan','sapporo':'japan','okinawa':'japan',
+            'seoul':'japan','busan':'japan',
+            // Pacific
+            'fiji':'pacific','auckland':'pacific','queenstown':'pacific','sydney':'pacific',
+            'port vila':'pacific','noumea':'pacific','rarotonga':'pacific','tahiti':'pacific',
+            'nadi':'pacific','tonga':'pacific','samoa':'pacific','hawaii':'pacific',
+            // Europe
+            'london':'europe','paris':'europe','amsterdam':'europe','rome':'europe','barcelona':'europe',
+            'madrid':'europe','lisbon':'europe','athens':'europe','prague':'europe','vienna':'europe',
+            'budapest':'europe','berlin':'europe','zurich':'europe','venice':'europe','florence':'europe',
+            'santorini':'europe','dubrovnik':'europe','split':'europe','amalfi':'europe',
+            // US/Canada
+            'new york':'us_canada','los angeles':'us_canada','san francisco':'us_canada',
+            'las vegas':'us_canada','miami':'us_canada','chicago':'us_canada','cancun':'us_canada',
+            'toronto':'us_canada','vancouver':'us_canada','montreal':'us_canada',
+            // Middle East
+            'dubai':'middle_east','abu dhabi':'middle_east','doha':'middle_east',
+            'istanbul':'middle_east','tel aviv':'middle_east','cairo':'middle_east',
+            // India / Africa
+            'delhi':'india','mumbai':'india','goa':'india','jaipur':'india','kerala':'india',
+            'maldives':'se_asia','sri lanka':'india',
+        };
+        const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+        function getPriceProfile(destKey, regionHint) {
+            // Use direct region hint if provided (from typeahead data)
+            if (regionHint && PRICE_PROFILES[regionHint]) return PRICE_PROFILES[regionHint];
+            const k = (destKey || '').toLowerCase();
+            if (DEST_TO_REGION[k]) return PRICE_PROFILES[DEST_TO_REGION[k]];
+            for (const [dKey, region] of Object.entries(DEST_TO_REGION)) {
+                if (k.includes(dKey) || dKey.includes(k)) return PRICE_PROFILES[region];
+            }
+            return PRICE_PROFILES.default;
+        }
+
+        function buildPriceChartHTML(destKey, departMonth, region) {
+            const prices = getPriceProfile(destKey, region);
+            const min = Math.min(...prices);
+            const max = Math.max(...prices);
+            const range = max - min || 1;
+
+            // Color per bar: green (cheap) → amber (mid) → rose (expensive)
+            function barColor(p) {
+                const t = (p - min) / range; // 0=cheapest 1=most expensive
+                if (t < 0.33) return { bg: '#10b981', shadow: 'rgba(16,185,129,0.35)' };
+                if (t < 0.66) return { bg: '#f59e0b', shadow: 'rgba(245,158,11,0.35)' };
+                return { bg: '#f43f5e', shadow: 'rgba(244,63,94,0.35)' };
+            }
+
+            const bars = prices.map((p, i) => {
+                const heightPct = Math.max(12, Math.round(((p - min) / range) * 72) + 14);
+                const isNow = i === departMonth;
+                const col = isNow ? { bg: '#6366f1', shadow: 'rgba(99,102,241,0.4)' } : barColor(p);
+                const delay = `${i * 30}ms`;
+                const labelOpacity = isNow ? '1' : '0.5';
+                const labelWeight = isNow ? '700' : '400';
+                return `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:3px;">
+                    <div style="width:100%;height:${heightPct}px;background:${col.bg};border-radius:4px 4px 2px 2px;
+                        box-shadow:0 2px 8px ${col.shadow};
+                        animation:barGrow 0.4s cubic-bezier(0.34,1.56,0.64,1) ${delay} both;
+                        transform-origin:bottom;
+                        ${isNow ? 'outline:2px solid rgba(99,102,241,0.5);outline-offset:1px;' : ''}"></div>
+                    <span style="font-size:7px;font-weight:${labelWeight};opacity:${labelOpacity};letter-spacing:0.2px;color:${isNow ? '#6366f1' : 'inherit'}">${MONTHS[i]}</span>
+                </div>`;
+            }).join('');
+
+            const cheapIdx = prices.indexOf(min);
+            const yourPrice = prices[departMonth];
+            const isYourBest = yourPrice === min;
+            const diff = Math.round(((yourPrice - min) / min) * 100);
+            const tipText = isYourBest
+                ? '🟢 Best time to fly!'
+                : `🟢 Cheapest: ${MONTHS[cheapIdx]} · your month is ~${diff}% pricier`;
+
+            return `<div style="display:flex;align-items:flex-end;gap:2px;height:88px;padding:0 0 2px 0;">
+                ${bars}
+            </div>
+            <div style="font-size:9px;margin-top:6px;color:var(--text-muted,#888);display:flex;justify-content:space-between;align-items:center;">
+                <span>${tipText}</span>
+                <span style="color:#6366f1;font-weight:600;">■ your trip</span>
+            </div>`;
+        }
+
+        function showPriceTooltip(btn, destKey, destLabel, departDate, region) {
+            // Remove any existing tooltips
+            document.querySelectorAll('.sky-price-tooltip').forEach(t => t.remove());
+
+            const departMonth = departDate ? new Date(departDate).getMonth() : new Date().getMonth();
+            const tooltip = document.createElement('div');
+            tooltip.className = 'sky-price-tooltip';
+            tooltip.innerHTML = `
+                <div style="font-size:10px;font-weight:700;letter-spacing:0.5px;margin-bottom:8px;opacity:0.85;">
+                    ✈ Seasonal fare trend — <span style="color:var(--bg-accent,#6366f1)">${destLabel}</span>
+                </div>
+                ${buildPriceChartHTML(destKey, departMonth, region)}
+                <div style="font-size:8.5px;margin-top:8px;opacity:0.38;text-align:center;border-top:1px solid var(--border-card,#e5e7eb);padding-top:6px;">Indicative seasonal index · not actual fares</div>
+            `;
+            // Position relative to button
+            btn.style.position = 'relative';
+            btn.appendChild(tooltip);
+            requestAnimationFrame(() => tooltip.classList.add('visible'));
+        }
+
+        function hidePriceTooltip(btn) {
+            const tooltip = btn.querySelector('.sky-price-tooltip');
+            if (tooltip) {
+                tooltip.classList.remove('visible');
+                setTimeout(() => tooltip.remove(), 160);
+            }
+        }
+
+        // ─── Supabase Auth — Magic Link ──────────────────────────────────
+        const SUPABASE_URL  = 'https://tfqzbdlalcufewpeeagv.supabase.co';
+        const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmcXpiZGxhbGN1ZmV3cGVlYWd2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5OTM0NTgsImV4cCI6MjA5NjU2OTQ1OH0.CJLkKOBAFUU_ftMTXrVvMxekwV7AoqAsZSTaRj75-4w';
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+        // Listen for auth state changes (fires on page load if session exists, and on magic-link click-through)
+        sb.auth.onAuthStateChange(async (event, session) => {
+            if (session?.user) {
+                showVaultUnlocked(session.user);
+                await loadVaultData(session.user);
+            } else {
+                showVaultLogin();
+            }
+        });
+
+        function showVaultUnlocked(user) {
             document.getElementById('vaultLogin').classList.add('hidden');
             document.getElementById('vaultContent').classList.remove('hidden');
+            const emailEl = document.getElementById('vaultUserEmail');
+            if (emailEl) emailEl.textContent = user.email;
             safeCreateIcons();
+            checkVaultWarnings();
+        }
+
+        function showVaultLogin() {
+            document.getElementById('vaultLogin').classList.remove('hidden');
+            document.getElementById('vaultContent').classList.add('hidden');
+            resetVaultLogin();
+        }
+
+        async function sendMagicLink() {
+            const emailInput = document.getElementById('vaultEmail');
+            const errorEl   = document.getElementById('vaultAuthError');
+            const email = emailInput?.value?.trim();
+
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showVaultError('Please enter a valid email address.');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+            const btn = event.currentTarget;
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+
+            const { error } = await sb.auth.signInWithOtp({
+                email,
+                options: { shouldCreateUser: true }
+            });
+
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="mail" class="w-4 h-4"></i> Send Magic Link';
+            safeCreateIcons();
+
+            if (error) {
+                const msg = error.message || '';
+                if (msg.toLowerCase().includes('rate') || msg.toLowerCase().includes('limit')) {
+                    showVaultError('Email limit reached (Supabase free tier). Check your inbox — a previous code may still be valid, or wait a few minutes before trying again.');
+                } else {
+                    showVaultError(msg);
+                }
+            } else {
+                document.getElementById('vaultEmailForm').classList.add('hidden');
+                document.getElementById('vaultMagicSent').classList.remove('hidden');
+                safeCreateIcons();
+            }
+        }
+
+        function resetVaultLogin() {
+            document.getElementById('vaultEmailForm').classList.remove('hidden');
+            document.getElementById('vaultMagicSent').classList.add('hidden');
+            document.getElementById('vaultAuthError').classList.add('hidden');
+            const emailInput = document.getElementById('vaultEmail');
+            if (emailInput) emailInput.value = '';
+            const otpInput = document.getElementById('vaultOtpCode');
+            if (otpInput) otpInput.value = '';
+        }
+
+        async function verifyOtp() {
+            const email = document.getElementById('vaultEmail')?.value?.trim();
+            const token = document.getElementById('vaultOtpCode')?.value?.trim();
+            if (!token || token.length !== 6) { showVaultError('Please enter the 6-digit code from your email.'); return; }
+            const { data, error } = await sb.auth.verifyOtp({ email, token, type: 'email' });
+            if (error) {
+                showVaultError('Invalid or expired code. ' + (error.message || ''));
+            }
+            // onAuthStateChange will fire automatically on success
+        }
+
+        function showVaultError(msg) {
+            const errorEl = document.getElementById('vaultAuthError');
+            errorEl.textContent = msg;
+            errorEl.classList.remove('hidden');
+        }
+
+        async function signOut() {
+            await sb.auth.signOut();
+            showVaultLogin();
+        }
+
+        // ─── Vault Data — Save/Load passport & visa expiry to user metadata ──
+        async function saveVaultData() {
+            const { data: { user } } = await sb.auth.getUser();
+            if (!user) return;
+            const passportExpiry = document.getElementById('passportExpiry')?.value || null;
+            const visaExpiry     = document.getElementById('visaExpiry')?.value     || null;
+            await sb.auth.updateUser({ data: { passportExpiry, visaExpiry } });
+        }
+
+        async function loadVaultData(user) {
+            const meta = user.user_metadata || {};
+            const passportEl = document.getElementById('passportExpiry');
+            const visaEl     = document.getElementById('visaExpiry');
+            if (passportEl && meta.passportExpiry) passportEl.value = meta.passportExpiry;
+            if (visaEl     && meta.visaExpiry)     visaEl.value     = meta.visaExpiry;
+            checkVaultWarnings();
         }
 
         function checkVaultWarnings() {
             const warningsEl = document.getElementById('vaultWarnings');
             if (!warningsEl) return;
             const passportExp = document.getElementById('passportExpiry')?.value;
-            const visaExp = document.getElementById('visaExpiry')?.value;
-            const tripRows = document.querySelectorAll('#tripsContainer [data-trip-id]');
+            const visaExp     = document.getElementById('visaExpiry')?.value;
+            const tripRows    = document.querySelectorAll('#tripsContainer [data-trip-id]');
 
             let warnings = [];
-            const today = getLocalYYYYMMDD(TODAY);
+            const today    = getLocalYYYYMMDD(TODAY);
 
+            // ── Passport: expiring within 6 months of today ──────────────
+            if (passportExp) {
+                const sixMonthsOut = new Date(TODAY);
+                sixMonthsOut.setMonth(sixMonthsOut.getMonth() + 6);
+                const sixStr = getLocalYYYYMMDD(sixMonthsOut);
+                if (passportExp <= today) {
+                    warnings.push({ type: 'danger', msg: `🚨 <strong>Passport has expired.</strong> You cannot travel internationally. Please renew immediately.` });
+                } else if (passportExp <= sixStr) {
+                    warnings.push({ type: 'danger', msg: `🚨 <strong>Passport expires within 6 months</strong> (${passportExp}). Many countries require at least 6 months validity — you may be denied boarding. Renew before your next trip.` });
+                }
+            }
+
+            // ── Visa: expiring within 6 months of today ──────────────────
+            if (visaExp) {
+                const sixMonthsOut = new Date(TODAY);
+                sixMonthsOut.setMonth(sixMonthsOut.getMonth() + 6);
+                const sixStr = getLocalYYYYMMDD(sixMonthsOut);
+                if (visaExp <= today) {
+                    warnings.push({ type: 'danger', msg: `🚨 <strong>Visa has expired.</strong> Check your current residency status before planning travel.` });
+                } else if (visaExp <= sixStr) {
+                    warnings.push({ type: 'warn', msg: `⚠️ <strong>Visa expires within 6 months</strong> (${visaExp}). Begin your renewal process now to avoid gaps.` });
+                }
+            }
+
+            // ── Per-trip: passport/visa expire before trip dates ─────────
             tripRows.forEach(row => {
                 const dateInputs = row.querySelectorAll('input[type="date"]');
                 const destSel = row.querySelector('select');
-                const dest = destSel ? destSel.options[destSel.selectedIndex]?.text : 'Trip';
+                const dest = destSel ? (destSel.options[destSel.selectedIndex]?.text || 'Trip') : 'Trip';
                 const tripStart = dateInputs[0]?.value;
-                const tripEnd = dateInputs[1]?.value;
-
-                if (passportExp && tripStart && passportExp < tripEnd) {
-                    warnings.push(`⚠️ <strong>Passport expires before ${dest} ends.</strong> Renew before ${tripEnd}.`);
-                }
-                if (visaExp && tripStart && visaExp < tripStart) {
-                    warnings.push(`⚠️ <strong>Visa may expire before ${dest} departs.</strong> Check validity for ${tripStart}.`);
-                }
+                const tripEnd   = dateInputs[1]?.value;
+                if (passportExp && tripEnd   && passportExp < tripEnd)   warnings.push({ type: 'warn', msg: `⚠️ <strong>Passport expires before ${dest} ends.</strong> Renew before ${tripEnd}.` });
+                if (visaExp     && tripStart && visaExp     < tripStart) warnings.push({ type: 'warn', msg: `⚠️ <strong>Visa may expire before ${dest} departs.</strong> Check validity for ${tripStart}.` });
             });
 
-            warningsEl.innerHTML = warnings.length
-                ? warnings.map(w => `<div class="text-[11px] leading-relaxed p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">${w}</div>`).join('')
-                : `<div class="text-[11px] text-emerald-700 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">✓ No document conflicts detected.</div>`;
+            if (warnings.length) {
+                warningsEl.innerHTML = warnings.map(w =>
+                    w.type === 'danger'
+                        ? `<div class="text-[11px] leading-relaxed p-2.5 rounded-xl bg-red-50 border border-red-300 text-red-900">${w.msg}</div>`
+                        : `<div class="text-[11px] leading-relaxed p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">${w.msg}</div>`
+                ).join('');
+            } else {
+                warningsEl.innerHTML = `<div class="text-[11px] text-emerald-700 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">✓ No document conflicts detected.</div>`;
+            }
             warningsEl.classList.remove('hidden');
         }
     </script>
